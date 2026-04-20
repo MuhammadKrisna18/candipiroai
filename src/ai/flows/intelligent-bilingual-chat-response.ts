@@ -63,18 +63,19 @@ const intelligentBilingualChatResponseFlow = ai.defineFlow(
       } catch (error: any) {
         attempts++;
         // Check if the error is a transient service error (503, high demand, etc.)
+        const errorMessage = error?.message || String(error);
         const isTransient = 
-          error.message?.includes('503') || 
-          error.message?.includes('Service Unavailable') || 
-          error.message?.includes('high demand') ||
-          error.message?.includes('UNAVAILABLE');
+          errorMessage.includes('503') || 
+          errorMessage.includes('Service Unavailable') || 
+          errorMessage.includes('high demand') ||
+          errorMessage.includes('UNAVAILABLE');
         
         if (attempts >= maxAttempts || !isTransient) {
           throw error;
         }
         
-        // Wait before retrying: 2s, 4s, etc.
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts)));
+        // Wait before retrying: 1s, 2s, 4s (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts - 1)));
       }
     }
     throw new Error('Service is currently unavailable after multiple retries. Please try again in a few moments.');

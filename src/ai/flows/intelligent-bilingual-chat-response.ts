@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for an intelligent bilingual chatbot.
@@ -51,7 +52,7 @@ const intelligentBilingualChatResponseFlow = ai.defineFlow(
   },
   async (input) => {
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = 5;
     
     while (attempts < maxAttempts) {
       try {
@@ -68,14 +69,16 @@ const intelligentBilingualChatResponseFlow = ai.defineFlow(
           errorMessage.includes('503') || 
           errorMessage.includes('Service Unavailable') || 
           errorMessage.includes('high demand') ||
-          errorMessage.includes('UNAVAILABLE');
+          errorMessage.includes('UNAVAILABLE') ||
+          errorMessage.includes('DEADLINE_EXCEEDED');
         
         if (attempts >= maxAttempts || !isTransient) {
           throw error;
         }
         
-        // Wait before retrying: 1s, 2s, 4s (exponential backoff)
-        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts - 1)));
+        // Wait before retrying: 1s, 2s, 4s, 8s (exponential backoff)
+        const delay = 1000 * Math.pow(2, attempts - 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
     throw new Error('Service is currently unavailable after multiple retries. Please try again in a few moments.');

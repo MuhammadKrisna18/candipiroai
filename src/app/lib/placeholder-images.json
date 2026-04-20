@@ -1,0 +1,16 @@
+{
+  "placeholderImages": [
+    {
+      "id": "app-logo",
+      "description": "Scientific genius icon with sparkles",
+      "imageUrl": "https://picsum.photos/seed/sci-spark/200/200",
+      "imageHint": "science technology"
+    },
+    {
+      "id": "physics-friction",
+      "description": "Illustration of forces and friction",
+      "imageUrl": "https://picsum.photos/seed/friction/600/400",
+      "imageHint": "physics forces"
+    }
+  ]
+}

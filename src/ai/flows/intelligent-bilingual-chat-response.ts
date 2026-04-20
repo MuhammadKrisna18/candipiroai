@@ -50,10 +50,33 @@ const intelligentBilingualChatResponseFlow = ai.defineFlow(
     outputSchema: IntelligentBilingualChatResponseOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    if (!output) {
-      throw new Error('No output received from the prompt.');
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      try {
+        const { output } = await prompt(input);
+        if (!output) {
+          throw new Error('No output received from the prompt.');
+        }
+        return output;
+      } catch (error: any) {
+        attempts++;
+        // Check if the error is a transient service error (503, high demand, etc.)
+        const isTransient = 
+          error.message?.includes('503') || 
+          error.message?.includes('Service Unavailable') || 
+          error.message?.includes('high demand') ||
+          error.message?.includes('UNAVAILABLE');
+        
+        if (attempts >= maxAttempts || !isTransient) {
+          throw error;
+        }
+        
+        // Wait before retrying: 2s, 4s, etc.
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempts)));
+      }
     }
-    return output;
+    throw new Error('Service is currently unavailable after multiple retries. Please try again in a few moments.');
   }
 );

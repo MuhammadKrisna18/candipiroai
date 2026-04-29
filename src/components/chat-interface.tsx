@@ -1,35 +1,34 @@
-"use client"
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import { ChatMessage, ChatSession, UserSession } from "@/lib/types";
 import { ChatMessageBubble } from "./chat-message-bubble";
 import { ChatHistory } from "./chat-history";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Send, 
-  Settings, 
-  LogOut, 
-  LogIn, 
-  User, 
-  Menu, 
-  Sparkles, 
+import {
+  Send,
+  Settings,
+  LogOut,
+  LogIn,
+  User,
+  Menu,
+  Sparkles,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
 } from "lucide-react";
-import { intelligentBilingualChatResponse } from "@/ai/flows/intelligent-bilingual-chat-response";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function ChatInterface() {
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [user, setUser] = useState<UserSession>({ isLoggedIn: false });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +40,7 @@ export function ChatInterface() {
     scrollToBottom();
   }, [sessions, currentSessionId]);
 
-  const currentSession = sessions.find(s => s.id === currentSessionId);
+  const currentSession = sessions.find((s) => s.id === currentSessionId);
 
   const handleNewChat = () => {
     const newSessionId = crypto.randomUUID();
@@ -49,11 +48,11 @@ export function ChatInterface() {
       id: newSessionId,
       title: "New Conversation",
       lastUpdated: Date.now(),
-      messages: []
+      messages: [],
     };
-    setSessions(prev => [newSession, ...prev]);
+    setSessions((prev) => [newSession, ...prev]);
     setCurrentSessionId(newSessionId);
-    setInput('');
+    setInput("");
   };
 
   const handleSendMessage = async () => {
@@ -66,70 +65,91 @@ export function ChatInterface() {
         id: sessionId,
         title: input.slice(0, 30) + (input.length > 30 ? "..." : ""),
         lastUpdated: Date.now(),
-        messages: []
+        messages: [],
       };
-      setSessions(prev => [newSession, ...prev]);
+      setSessions((prev) => [newSession, ...prev]);
       setCurrentSessionId(sessionId);
     }
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
-      role: 'user',
+      role: "user",
       content: input,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
-    setSessions(prev => prev.map(s => {
-      if (s.id === sessionId) {
-        return {
-          ...s,
-          messages: [...s.messages, userMessage],
-          lastUpdated: Date.now(),
-          title: s.messages.length === 0 ? input.slice(0, 30) + (input.length > 30 ? "..." : "") : s.title
-        };
-      }
-      return s;
-    }));
-
-    setInput('');
-    setIsLoading(true);
-
-    try {
-      const response = await intelligentBilingualChatResponse({ question: input });
-      
-      const aiMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'ai',
-        content: response.answer,
-        timestamp: Date.now(),
-        detectedLanguage: response.detectedLanguage,
-        detectedTopic: response.detectedTopic
-      };
-
-      setSessions(prev => prev.map(s => {
+    setSessions((prev) =>
+      prev.map((s) => {
         if (s.id === sessionId) {
           return {
             ...s,
-            messages: [...s.messages, aiMessage],
-            lastUpdated: Date.now()
+            messages: [...s.messages, userMessage],
+            lastUpdated: Date.now(),
+            title:
+              s.messages.length === 0
+                ? input.slice(0, 30) + (input.length > 30 ? "..." : "")
+                : s.title,
           };
         }
         return s;
-      }));
+      }),
+    );
+
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ question: input }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Request failed");
+      }
+
+      const aiMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "ai",
+        content: data.answer,
+        timestamp: Date.now(),
+        detectedLanguage: data.detectedLanguage,
+        detectedTopic: data.detectedTopic,
+      };
+
+      setSessions((prev) =>
+        prev.map((s) => {
+          if (s.id === sessionId) {
+            return {
+              ...s,
+              messages: [...s.messages, aiMessage],
+              lastUpdated: Date.now(),
+            };
+          }
+          return s;
+        }),
+      );
     } catch (error) {
       console.error("Failed to get AI response:", error);
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
-        role: 'ai',
+        role: "ai",
         content: "Sorry, I encountered an error. Please try again later.",
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
-      setSessions(prev => prev.map(s => {
-        if (s.id === sessionId) {
-          return { ...s, messages: [...s.messages, errorMessage] };
-        }
-        return s;
-      }));
+      setSessions((prev) =>
+        prev.map((s) => {
+          if (s.id === sessionId) {
+            return { ...s, messages: [...s.messages, errorMessage] };
+          }
+          return s;
+        }),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -141,8 +161,8 @@ export function ChatInterface() {
       user: {
         name: "Guest Explorer",
         email: "explorer@scigenius.com",
-        avatar: "https://picsum.photos/seed/user/100/100"
-      }
+        avatar: "https://picsum.photos/seed/user/100/100",
+      },
     });
   };
 
@@ -154,8 +174,8 @@ export function ChatInterface() {
     <div className="flex h-screen bg-background overflow-hidden">
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-80 shrink-0">
-        <ChatHistory 
-          sessions={sessions} 
+        <ChatHistory
+          sessions={sessions}
           currentSessionId={currentSessionId}
           onSelectSession={setCurrentSessionId}
           onNewChat={handleNewChat}
@@ -174,8 +194,8 @@ export function ChatInterface() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-80">
-                <ChatHistory 
-                  sessions={sessions} 
+                <ChatHistory
+                  sessions={sessions}
                   currentSessionId={currentSessionId}
                   onSelectSession={(id) => {
                     setCurrentSessionId(id);
@@ -188,7 +208,7 @@ export function ChatInterface() {
                 />
               </SheetContent>
             </Sheet>
-            
+
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
@@ -204,13 +224,22 @@ export function ChatInterface() {
               <div className="flex items-center gap-3">
                 <div className="hidden sm:block text-right">
                   <p className="text-xs font-semibold">{user.user?.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{user.user?.email}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {user.user?.email}
+                  </p>
                 </div>
                 <Avatar className="w-8 h-8 border">
                   <AvatarImage src={user.user?.avatar} />
-                  <AvatarFallback><User /></AvatarFallback>
+                  <AvatarFallback>
+                    <User />
+                  </AvatarFallback>
                 </Avatar>
-                <Button variant="ghost" size="icon" onClick={handleLogout} title="Logout">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLogout}
+                  title="Logout"
+                >
                   <LogOut className="w-4 h-4 text-muted-foreground" />
                 </Button>
               </div>
@@ -232,25 +261,30 @@ export function ChatInterface() {
                   <Sparkles className="w-10 h-10 text-primary" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-3xl font-bold text-primary">How can I assist you today?</h2>
+                  <h2 className="text-3xl font-bold text-primary">
+                    How can I assist you today?
+                  </h2>
                   <p className="text-muted-foreground max-w-lg mx-auto">
-                    Ask me anything about physics, friction, or general knowledge in Indonesian or English.
+                    Ask me anything about physics, friction, or general
+                    knowledge in Indonesian or English.
                   </p>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl mt-8">
                   {[
                     "Apa itu gaya gesek statis?",
                     "Explain Newton's laws of motion.",
                     "Siapa penemu lampu pijar?",
-                    "How does air resistance affect falling objects?"
+                    "How does air resistance affect falling objects?",
                   ].map((example) => (
                     <button
                       key={example}
                       onClick={() => setInput(example)}
                       className="text-left p-4 rounded-xl border border-border bg-white hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-between group"
                     >
-                      <span className="text-sm font-medium text-foreground/80 group-hover:text-primary">{example}</span>
+                      <span className="text-sm font-medium text-foreground/80 group-hover:text-primary">
+                        {example}
+                      </span>
                       <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </button>
                   ))}
@@ -285,7 +319,7 @@ export function ChatInterface() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleSendMessage();
                   }
@@ -297,8 +331,8 @@ export function ChatInterface() {
                   <ShieldCheck className="w-3 h-3 text-accent" />
                   Physics & Knowledge Assistant
                 </div>
-                <Button 
-                  onClick={handleSendMessage} 
+                <Button
+                  onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
                   size="sm"
                   className="rounded-full px-5 font-semibold transition-all"

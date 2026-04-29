@@ -1,9 +1,11 @@
-import type {Metadata} from 'next';
-import './globals.css';
+import type { Metadata } from "next";
+import "./globals.css";
+import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
-  title: 'SciGenius Chat - Bilingual AI Physics & Knowledge Assistant',
-  description: 'An intelligent bilingual chatbot for Physics and General Knowledge questions.',
+  title: "SciGenius Chat - Bilingual AI Physics & Knowledge Assistant",
+  description:
+    "An intelligent bilingual chatbot for Physics and General Knowledge questions.",
 };
 
 export default function RootLayout({
@@ -15,8 +17,15 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body className="font-body antialiased min-h-screen bg-background">
         {children}

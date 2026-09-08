@@ -3,7 +3,7 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
-  title: "SciGenius Chat - Bilingual AI Physics & Knowledge Assistant",
+  title: "CandipiroAI - Bilingual General AI Assistant",
   description:
     "An intelligent bilingual chatbot for Physics and General Knowledge questions.",
 };

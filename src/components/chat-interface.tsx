@@ -323,7 +323,7 @@ export function ChatInterface() {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-                SciGenius Chat
+                CandipiroAI
               </h1>
             </div>
           </div>
@@ -438,7 +438,7 @@ export function ChatInterface() {
               <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
                 <div className="flex gap-1 text-[10px] text-muted-foreground items-center font-medium">
                   <ShieldCheck className="w-3 h-3 text-accent" />
-                  Physics & Knowledge Assistant
+                  CandipiroAI
                 </div>
                 <Button
                   onClick={handleSendMessage}
@@ -452,7 +452,7 @@ export function ChatInterface() {
               </div>
             </div>
             <p className="text-center text-[10px] text-muted-foreground mt-3 uppercase tracking-widest font-semibold opacity-60">
-              Powered by SciGenius AI
+              Powered by CandipiroAI
             </p>
           </div>
         </div>

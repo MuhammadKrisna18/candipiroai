@@ -6,7 +6,7 @@ export interface ChatMessage {
   content: string;
   timestamp: number;
   detectedLanguage?: 'Indonesian' | 'English';
-  detectedTopic?: 'Physics' | 'General Knowledge';
+  detectedTopic?: string;
 }
 
 export interface ChatSession {

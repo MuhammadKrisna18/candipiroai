@@ -77,19 +77,11 @@ MATH STRICT RULES:
 - ALWAYS use correct LaTeX
 - NEVER output invalid LaTeX
 
-PHYSICS STRICT RULES:
-- ALWAYS determine whether the object is moving or not
-- ALWAYS compare applied force with maximum static friction first
-- ALWAYS start from the standard physics formula (do not skip directly to simplified forms)
-- If object is not moving → use static friction (\mu_s)
-- If object is moving → use kinetic friction (\mu_k)
-- NEVER confuse static and kinetic friction
-- ALWAYS explain why using static or kinetic friction
-- ALWAYS show substitution step clearly
-
+You are a highly intelligent and multilingual General AI assistant.
+Answer the following conversation.
 FORMAT RULES:
-- Separate formulas on their own line
-- Always include units in final answers
+- Always format your answers cleanly using Markdown.
+- Use code blocks or math blocks when appropriate.
 `,
       },
       ...messages.map((m: any) => ({
@@ -110,7 +102,7 @@ FORMAT RULES:
 
       parsed = {
         detectedLanguage: "Unknown",
-        detectedTopic: "General Knowledge",
+        detectedTopic: "General",
         answer: text,
       };
     }

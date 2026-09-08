@@ -1,4 +1,4 @@
-# SciGenius AI Chat 🚀
+# CandipiroAI 🚀
 
 *(Scroll down for Indonesian version / Gulir ke bawah untuk versi Bahasa Indonesia)*
 
@@ -6,11 +6,11 @@
 
 ## 🇺🇸 English Version
 
-### About SciGenius
-SciGenius Chat is an AI-powered educational assistant built with modern web technologies (Next.js 15, Tailwind CSS, Firebase). It is specifically tailored to answer complex questions about physics (especially friction mechanics) and general knowledge, with native bilingual support (English & Indonesian).
+### About CandipiroAI
+CandipiroAI is a powerful, general-purpose AI assistant built with modern web technologies (Next.js 15, Tailwind CSS, Firebase). It is designed to answer a wide variety of topics including coding, science, history, and creative writing, with native bilingual support (English & Indonesian).
 
 ### Key Features
-- **🧠 Specialized Physics AI:** Strictly follows standardized physics formulas, enforcing checks between static and kinetic friction before answering.
+- **🧠 Versatile General AI:** Capable of understanding and answering a wide range of topics without being restricted to a specific domain, providing smart and contextual answers.
 - **🔐 Secure Authentication:** Powered by Firebase Authentication. Users can securely create accounts and sign in using their email and password.
 - **🕵️ Ephemeral Guest Mode:** Users who haven't logged in can still chat, but their conversations are completely ephemeral and disappear upon refresh to guarantee privacy.
 - **🔒 Private Session History:** Logged-in users have their chat histories saved securely on their local device, isolated by their unique Firebase User ID (`uid`).
@@ -48,11 +48,11 @@ SciGenius Chat is an AI-powered educational assistant built with modern web tech
 
 ## 🇮🇩 Versi Bahasa Indonesia
 
-### Tentang SciGenius
-SciGenius Chat adalah asisten edukasi berbasis Kecerdasan Buatan (AI) yang dibangun dengan teknologi web modern (Next.js 15, Tailwind CSS, Firebase). Aplikasi ini dirancang secara khusus untuk menjawab pertanyaan rumit seputar fisika (terutama mekanika gaya gesek) serta pengetahuan umum, dengan dukungan penuh untuk bahasa Inggris dan Indonesia.
+### Tentang CandipiroAI
+CandipiroAI adalah asisten AI serba bisa yang dibangun dengan teknologi web modern (Next.js 15, Tailwind CSS, Firebase). Aplikasi ini dirancang untuk menjawab berbagai macam topik mulai dari pemrograman, sains, sejarah, hingga penulisan kreatif, dengan dukungan penuh untuk bahasa Inggris dan Indonesia.
 
 ### Fitur Utama
-- **🧠 AI Spesialis Fisika:** AI secara ketat mengikuti standar rumus fisika, selalu memastikan evaluasi gaya gesek statis dan kinetis secara akurat sebelum memberikan jawaban.
+- **🧠 AI Serba Bisa (General AI):** Mampu memahami dan menjawab berbagai macam topik tanpa dibatasi pada satu bidang tertentu, memberikan jawaban yang cerdas dan sesuai konteks.
 - **🔐 Autentikasi Aman:** Ditenagai oleh Firebase Authentication. Pengguna dapat membuat akun dan login secara aman menggunakan email dan kata sandi.
 - **🕵️ Mode Tamu Tanpa Jejak:** Pengguna yang belum login tetap dapat menggunakan layanan obrolan, namun riwayat mereka bersifat sementara dan akan lenyap seutuhnya ketika halaman dimuat ulang (*refresh*) demi menjamin privasi.
 - **🔒 Riwayat Privat Berbasis Akun:** Pengguna yang telah login memiliki riwayat percakapan yang disimpan secara lokal di perangkat mereka, diisolasi secara khusus menggunakan ID Pengguna (UID) unik dari Firebase.

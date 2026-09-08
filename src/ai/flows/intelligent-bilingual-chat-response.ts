@@ -14,13 +14,13 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 
 const IntelligentBilingualChatResponseInputSchema = z.object({
-  question: z.string().describe('The user\'s question, which can be in Indonesian or English, covering physics (especially friction) or general knowledge.'),
+  question: z.string().describe('The user\'s question, which can be in Indonesian or English.'),
 });
 export type IntelligentBilingualChatResponseInput = z.infer<typeof IntelligentBilingualChatResponseInputSchema>;
 
 const IntelligentBilingualChatResponseOutputSchema = z.object({
   detectedLanguage: z.enum(['Indonesian', 'English']).describe('The detected language of the user\'s question. Must be either "Indonesian" or "English".'),
-  detectedTopic: z.enum(['Physics', 'General Knowledge']).describe('The detected topic of the user\'s question. Must be either "Physics" or "General Knowledge".'),
+  detectedTopic: z.string().describe('A short 1-3 word description of the detected topic of the user\'s question.'),
   answer: z.string().describe('A comprehensive, contextually relevant, and language-appropriate answer to the user\'s question.'),
 });
 export type IntelligentBilingualChatResponseOutput = z.infer<typeof IntelligentBilingualChatResponseOutputSchema>;
@@ -33,11 +33,9 @@ const prompt = ai.definePrompt({
   name: 'intelligentBilingualChatResponsePrompt',
   input: { schema: IntelligentBilingualChatResponseInputSchema },
   output: { schema: IntelligentBilingualChatResponseOutputSchema },
-  prompt: `You are a highly intelligent and multilingual AI assistant specializing in physics (especially friction) and general knowledge.
+  prompt: `You are a highly intelligent and multilingual General AI assistant.
 
-Your task is to analyze a user's question, determine its language (Indonesian or English), identify its topic (Physics or General Knowledge), and then provide a comprehensive, contextually relevant, and language-appropriate answer.
-
-Focus on providing detailed physics explanations when the topic is physics, especially concerning friction. For general knowledge, provide accurate and informative answers.
+Your task is to analyze a user's question, determine its language (Indonesian or English), identify its general topic, and then provide a comprehensive, contextually relevant, and language-appropriate answer.
 
 The output MUST be a JSON object matching the provided schema.
 

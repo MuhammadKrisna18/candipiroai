@@ -57,7 +57,7 @@ export function ChatHistory({
                 currentSessionId === session.id ? "text-primary" : "text-muted-foreground"
               )} />
               <div className="flex-1 min-w-0">
-                <div className="truncate">{session.title || "Untitled Chat"}</div>
+                <div className="truncate">{session.title || "Obrolan Tanpa Judul"}</div>
                 <div className="text-[10px] text-muted-foreground flex items-center gap-1 mt-1">
                   <Clock className="w-2.5 h-2.5" />
                   {new Date(session.lastUpdated).toLocaleDateString()}
@@ -75,16 +75,16 @@ export function ChatHistory({
                 <DropdownMenuContent align="end" className="w-40">
                   <DropdownMenuItem onClick={() => onTogglePin(session.id)}>
                     {session.isPinned ? (
-                      <><PinOff className="w-4 h-4 mr-2" /> Unpin</>
+                      <><PinOff className="w-4 h-4 mr-2" /> Lepas Sematan</>
                     ) : (
-                      <><Pin className="w-4 h-4 mr-2" /> Pin</>
+                      <><Pin className="w-4 h-4 mr-2" /> Sematkan</>
                     )}
                   </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => onDeleteSession(session.id)}
                     className="text-destructive focus:bg-destructive/10 focus:text-destructive"
                   >
-                    <Trash2 className="w-4 h-4 mr-2" /> Delete
+                    <Trash2 className="w-4 h-4 mr-2" /> Hapus
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -103,19 +103,19 @@ export function ChatHistory({
           className="w-full flex gap-2 justify-center items-center font-semibold bg-primary hover:bg-primary/90"
         >
           <Plus className="w-4 h-4" />
-          New Chat
+          Obrolan Baru
         </Button>
       </div>
       
       <ScrollArea className="flex-1">
         {sessions.length === 0 ? (
           <div className="px-3 py-4 text-sm text-muted-foreground italic text-center mt-4">
-            No chat history yet
+            Belum ada riwayat obrolan
           </div>
         ) : (
           <>
-            {renderSessionList(pinnedSessions, "Pinned")}
-            {renderSessionList(recentSessions, "Recent Conversations")}
+            {renderSessionList(pinnedSessions, "Disematkan")}
+            {renderSessionList(recentSessions, "Percakapan Terakhir")}
           </>
         )}
       </ScrollArea>

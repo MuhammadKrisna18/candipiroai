@@ -1,4 +1,4 @@
-# CandipiroAI 🚀
+# CandipiroAI 🚀✨
 
 *(Scroll down for Indonesian version / Gulir ke bawah untuk versi Bahasa Indonesia)*
 
@@ -6,82 +6,55 @@
 
 ## 🇺🇸 English Version
 
-### About CandipiroAI
-CandipiroAI is a powerful, general-purpose AI assistant built with modern web technologies (Next.js 15, Tailwind CSS, Firebase). It is designed to answer a wide variety of topics including coding, science, history, and creative writing, with native bilingual support (English & Indonesian).
+### What is CandipiroAI?
+Imagine having a super-smart, all-knowing digital friend available 24/7. That's **CandipiroAI**! 
 
-### Key Features
-- **🧠 Versatile General AI:** Capable of understanding and answering a wide range of topics without being restricted to a specific domain, providing smart and contextual answers.
-- **🔐 Secure Authentication:** Powered by Firebase Authentication. Users can securely create accounts and sign in using their email and password.
-- **🕵️ Ephemeral Guest Mode:** Users who haven't logged in can still chat, but their conversations are completely ephemeral and disappear upon refresh to guarantee privacy.
-- **🔒 Private Session History:** Logged-in users have their chat histories saved securely on their local device, isolated by their unique Firebase User ID (`uid`).
-- **📌 Chat Management:** Easily manage your conversations with the ability to **Pin** up to 5 important chats to the top of your sidebar, or **Delete** unwanted histories instantly.
+Whether you need help writing a school essay, understanding complex science concepts, fixing a computer code, or just looking for a food recipe, CandipiroAI can answer it all. You can talk to it in English or Indonesian, and it will reply naturally!
 
-### Technologies Used
-- **Frontend:** Next.js 15 (App Router), React, Tailwind CSS, Shadcn UI (Radix UI)
-- **Backend/AI:** Google Genkit, OpenAI API
-- **Authentication:** Firebase Auth
+### Awesome Features (Easy to Understand)
+- **🧠 Ask Me Anything:** It's not just for school or work. You can ask for jokes, stories, history, or programming help. It understands almost everything!
+- **☁️ Magic Cloud Sync (Like WhatsApp Web):** If you log in with your email on your Laptop and your Phone at the same time, your chat will magically sync! If you type a message on your Phone, it instantly appears on your Laptop screen.
+- **🕵️ Secret / Guest Mode:** Want to ask something embarrassing without leaving a trace? Just use the app without logging in! Once you close the app, your chat is permanently destroyed.
+- **📌 Pin Your Favorites:** Have a really important conversation? You can "Pin" (nail) up to 5 chats to the top of your screen so you never lose them.
+- **💻 Beautiful Code Display:** If you ask it to write computer code, it won't give you messy text. It gives you a beautiful, colorful code box with a one-click "Copy" button!
 
-### Getting Started
+---
 
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-2. **Environment Variables:**
-   Create a `.env.local` file in the root directory and add the following keys:
-   ```env
-   OPENAI_API_KEY="your-openai-api-key"
-   NEXT_PUBLIC_FIREBASE_API_KEY="your-firebase-api-key"
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-firebase-auth-domain"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-firebase-project-id"
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-firebase-storage-bucket"
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-firebase-messaging-sender-id"
-   NEXT_PUBLIC_FIREBASE_APP_ID="your-firebase-app-id"
-   ```
-3. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-4. **Access the app:** Open [http://localhost:9002](http://localhost:9002) in your browser.
+### 👨‍💻 For Developers (Geeky Stuff)
+- **Tech Stack:** Next.js 15 (App Router), React, Tailwind CSS, Shadcn UI
+- **AI Brain:** Google Genkit & OpenAI API
+- **Database & Auth:** Firebase Auth & Firestore (Real-time syncing)
 
+**How to run it on your computer:**
+1. Run `npm install`
+2. Make a `.env.local` file and put your Firebase & OpenAI Keys inside.
+3. Run `npm run dev` and open `http://localhost:9002`.
+
+---
 ---
 
 ## 🇮🇩 Versi Bahasa Indonesia
 
-### Tentang CandipiroAI
-CandipiroAI adalah asisten AI serba bisa yang dibangun dengan teknologi web modern (Next.js 15, Tailwind CSS, Firebase). Aplikasi ini dirancang untuk menjawab berbagai macam topik mulai dari pemrograman, sains, sejarah, hingga penulisan kreatif, dengan dukungan penuh untuk bahasa Inggris dan Indonesia.
+### Apa itu CandipiroAI?
+Bayangkan Anda memiliki teman digital super pintar yang tahu segalanya dan siap membantu 24 jam nonstop. Itulah **CandipiroAI**!
 
-### Fitur Utama
-- **🧠 AI Serba Bisa (General AI):** Mampu memahami dan menjawab berbagai macam topik tanpa dibatasi pada satu bidang tertentu, memberikan jawaban yang cerdas dan sesuai konteks.
-- **🔐 Autentikasi Aman:** Ditenagai oleh Firebase Authentication. Pengguna dapat membuat akun dan login secara aman menggunakan email dan kata sandi.
-- **🕵️ Mode Tamu Tanpa Jejak:** Pengguna yang belum login tetap dapat menggunakan layanan obrolan, namun riwayat mereka bersifat sementara dan akan lenyap seutuhnya ketika halaman dimuat ulang (*refresh*) demi menjamin privasi.
-- **🔒 Riwayat Privat Berbasis Akun:** Pengguna yang telah login memiliki riwayat percakapan yang disimpan secara lokal di perangkat mereka, diisolasi secara khusus menggunakan ID Pengguna (UID) unik dari Firebase.
-- **📌 Manajemen Riwayat Obrolan:** Kelola percakapan Anda dengan mudah melalui fitur **Sematkan (Pin)** (maksimal 5 obrolan penting ke bagian atas sidebar), atau **Hapus (Delete)** riwayat yang tidak diinginkan secara instan.
+Entah Anda butuh bantuan mengerjakan PR sekolah, mencari tahu sejarah dunia, memperbaiki kode komputer yang *error*, atau sekadar mencari resep nasi goreng, CandipiroAI bisa menjawab semuanya. Anda bisa mengobrol santai dalam bahasa Indonesia maupun Inggris!
 
-### Teknologi yang Digunakan
-- **Frontend:** Next.js 15 (App Router), React, Tailwind CSS, Shadcn UI (Radix UI)
-- **Backend/AI:** Google Genkit, OpenAI API
-- **Autentikasi:** Firebase Auth
+### Fitur-Fitur Keren (Bahasa Awam)
+- **🧠 Tanya Apa Saja:** AI ini serba bisa! Bukan cuma untuk urusan sekolah, Anda bisa memintanya membuatkan puisi, bercerita, atau membantu pekerjaan kantor Anda.
+- **☁️ Ingatan Lintas Perangkat (Seperti WhatsApp Web):** Jika Anda *login* (masuk) menggunakan *email* di HP dan Laptop, obrolan Anda akan tersinkronisasi seperti sihir! Ketik pesan di HP, maka pesannya akan langsung muncul di layar Laptop Anda detik itu juga.
+- **🕵️ Mode Rahasia (Tamu):** Ingin bertanya sesuatu tapi tidak mau ketahuan? Pakai saja tanpa perlu *login*. Saat Anda menutup layarnya, semua obrolan Anda akan hangus dan musnah selamanya.
+- **📌 Paku Obrolan Penting (Pin):** Punya obrolan yang sangat penting? Anda bisa "memaku" maksimal 5 obrolan agar selalu berada di posisi paling atas dan tidak tenggelam.
+- **💻 Tampilan Kode Mewah:** Jika Anda menyuruhnya membuat kode komputer/situs web, ia akan menampilkannya di dalam kotak hitam warna-warni yang sangat cantik, lengkap dengan tombol "Salin" (*Copy*) sekali klik!
 
-### Cara Memulai
+---
 
-1. **Instal dependensi:**
-   ```bash
-   npm install
-   ```
-2. **Variabel Lingkungan (Environment Variables):**
-   Buat file bernama `.env.local` di *folder* utama proyek, lalu tambahkan kunci-kunci berikut:
-   ```env
-   OPENAI_API_KEY="kunci-openai-anda"
-   NEXT_PUBLIC_FIREBASE_API_KEY="kunci-api-firebase-anda"
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="domain-auth-firebase-anda"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="id-proyek-firebase-anda"
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="bucket-penyimpanan-firebase-anda"
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="id-pengirim-pesan-firebase-anda"
-   NEXT_PUBLIC_FIREBASE_APP_ID="id-aplikasi-firebase-anda"
-   ```
-3. **Jalankan *server* lokal:**
-   ```bash
-   npm run dev
-   ```
-4. **Buka aplikasi:** Akses [http://localhost:9002](http://localhost:9002) melalui *browser* Anda.
+### 👨‍💻 Untuk Programmer (Info Teknis)
+- **Teknologi:** Next.js 15 (App Router), React, Tailwind CSS, Shadcn UI
+- **Otak AI:** Google Genkit & OpenAI API
+- **Database & Keamanan:** Firebase Auth & Firestore (Sinkronisasi *Real-time*)
+
+**Cara menjalankan di komputer sendiri:**
+1. Buka terminal, jalankan `npm install`
+2. Buat file `.env.local` dan masukkan kunci rahasia (*Keys*) API OpenAI & Firebase Anda.
+3. Jalankan `npm run dev` lalu buka tautan `http://localhost:9002` di *browser*.

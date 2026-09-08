@@ -20,9 +20,11 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { AuthDialog } from "./auth-dialog";
 import { auth, db } from "@/lib/firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
 import { collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc, query, orderBy } from "firebase/firestore";
 
 export function ChatInterface() {
@@ -34,6 +36,9 @@ export function ChatInterface() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editedName, setEditedName] = useState("");
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -72,11 +77,14 @@ export function ChatInterface() {
       } else {
         setUser({ isLoggedIn: false });
       }
+      setIsAuthLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
   useEffect(() => {
+    if (isAuthLoading) return;
+
     if (!user.isLoggedIn || !user.user?.uid || !db) {
       setSessions([]);
       setCurrentSessionId(null);
@@ -92,13 +100,11 @@ export function ChatInterface() {
       });
       setSessions(loadedSessions);
       
-      // Auto-select the first session if none is selected
       if (loadedSessions.length > 0) {
         setCurrentSessionId((prevId) => {
-          if (!prevId || !loadedSessions.find(s => s.id === prevId)) {
-            return loadedSessions[0].id;
-          }
-          return prevId;
+          // Keep current selection if valid, otherwise do not auto-select anything on refresh.
+          if (prevId && loadedSessions.find(s => s.id === prevId)) return prevId;
+          return null;
         });
       } else {
         setCurrentSessionId(null);
@@ -111,7 +117,7 @@ export function ChatInterface() {
     });
 
     return () => unsubscribe();
-  }, [user.isLoggedIn, user.user?.uid]);
+  }, [user.isLoggedIn, user.user?.uid, isAuthLoading]);
 
   const currentSession = sessions.find((s) => s.id === currentSessionId);
 
@@ -181,6 +187,23 @@ export function ChatInterface() {
       setCurrentSessionId(newSessionId);
       setInput("");
     });
+  };
+
+  const handleSaveName = async () => {
+    if (!editedName.trim() || !auth?.currentUser) {
+      setIsEditingName(false);
+      return;
+    }
+    try {
+      await updateProfile(auth.currentUser, { displayName: editedName });
+      setUser((prev) => ({
+        ...prev,
+        user: prev.user ? { ...prev.user, name: editedName } : undefined,
+      }));
+    } catch (e) {
+      console.error("Error updating name:", e);
+    }
+    setIsEditingName(false);
   };
 
   const handleSendMessage = async () => {
@@ -288,7 +311,7 @@ export function ChatInterface() {
   };
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-[100dvh] w-full overflow-hidden bg-background font-body">
       {/* Desktop Sidebar */}
       <div className="hidden md:block w-80 shrink-0">
         <ChatHistory
@@ -344,7 +367,16 @@ export function ChatInterface() {
             {user.isLoggedIn ? (
               <div className="flex items-center gap-3">
                 <div className="hidden sm:block text-right">
-                  <p className="text-xs font-semibold">{user.user?.name}</p>
+                  <p
+                    className="text-xs font-semibold cursor-pointer hover:underline"
+                    onClick={() => {
+                      setEditedName(user.user?.name || "");
+                      setIsEditingName(true);
+                    }}
+                    title="Klik untuk mengubah nama"
+                  >
+                    {user.user?.name}
+                  </p>
                   <p className="text-[10px] text-muted-foreground">
                     {user.user?.email}
                   </p>
@@ -359,7 +391,7 @@ export function ChatInterface() {
                   variant="ghost"
                   size="icon"
                   onClick={handleLogout}
-                  title="Logout"
+                  title="Keluar"
                 >
                   <LogOut className="w-4 h-4 text-muted-foreground" />
                 </Button>
@@ -367,7 +399,7 @@ export function ChatInterface() {
             ) : (
               <Button size="sm" onClick={handleLogin} className="flex gap-2">
                 <LogIn className="w-4 h-4" />
-                Login
+                Masuk
               </Button>
             )}
           </div>
@@ -376,40 +408,53 @@ export function ChatInterface() {
         {/* Chat Messages */}
         <ScrollArea className="flex-1 px-4 md:px-8 py-6">
           <div className="max-w-4xl mx-auto h-full flex flex-col">
-            {!currentSession || currentSession.messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 opacity-0 animate-in fade-in zoom-in-95 duration-700 fill-mode-forwards">
-                <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-4">
+            {!isInitialized ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
+                <Sparkles className="w-8 h-8 text-primary animate-pulse mb-4" />
+                <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+              </div>
+            ) : (!currentSession || currentSession.messages.length === 0) ? (
+              <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 px-4">
+                <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-2">
                   <Sparkles className="w-10 h-10 text-primary" />
                 </div>
                 <div className="space-y-2">
                   <h2 className="text-3xl font-bold text-primary">
-                    How can I assist you today?
+                    Selamat datang di CandipiroAI{user.isLoggedIn && user.user?.name ? `, ${user.user.name}` : ""}
                   </h2>
                   <p className="text-muted-foreground max-w-lg mx-auto">
-                    Ask me anything about programming, science, history, or general
-                    knowledge in Indonesian or English.
+                    {!user.isLoggedIn 
+                      ? "Silakan Masuk atau buat akun terlebih dahulu untuk memulai obrolan dan menyimpan riwayat percakapan Anda."
+                      : "Ada yang bisa saya bantu hari ini? Jangan ragu untuk bertanya apa saja dalam Bahasa Indonesia maupun Inggris!"}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl mt-8">
-                  {[
-                    "Apa itu gaya gesek statis?",
-                    "Explain Newton's laws of motion.",
-                    "Siapa penemu lampu pijar?",
-                    "How does air resistance affect falling objects?",
-                  ].map((example) => (
-                    <button
-                      key={example}
-                      onClick={() => setInput(example)}
-                      className="text-left p-4 rounded-xl border border-border bg-white hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-between group"
-                    >
-                      <span className="text-sm font-medium text-foreground/80 group-hover:text-primary">
-                        {example}
-                      </span>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                    </button>
-                  ))}
-                </div>
+                {!user.isLoggedIn ? (
+                  <Button onClick={handleLogin} className="mt-4" size="lg">
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Masuk / Daftar
+                  </Button>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl mt-8">
+                    {[
+                      "Bantu saya membuat rencana perjalanan 3 hari ke Bali.",
+                      "Explain the concept of Artificial Intelligence to a 5 year old.",
+                      "Tuliskan email sopan untuk menolak tawaran pekerjaan.",
+                      "What are some healthy and quick breakfast recipes?",
+                    ].map((example) => (
+                      <button
+                        key={example}
+                        onClick={() => setInput(example)}
+                        className="text-left p-4 rounded-xl border border-border bg-card shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-between group"
+                      >
+                        <span className="text-sm font-medium text-foreground/80 group-hover:text-primary">
+                          {example}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-2">
@@ -439,7 +484,7 @@ export function ChatInterface() {
             <div className="relative bg-white dark:bg-card rounded-2xl border shadow-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
               <Textarea
                 ref={textareaRef}
-                placeholder="Type your question here... (Indonesian or English)"
+                placeholder="Ketik pertanyaan Anda di sini... (Bahasa Indonesia atau Inggris)"
                 value={input}
                 onChange={handleInput}
                 onKeyDown={(e) => {
@@ -461,7 +506,7 @@ export function ChatInterface() {
                   size="sm"
                   className="rounded-full px-5 font-semibold transition-all"
                 >
-                  {isLoading ? "Thinking..." : "Send"}
+                  {isLoading ? "Memikirkan..." : "Kirim"}
                   {!isLoading && <Send className="w-4 h-4 ml-2" />}
                 </Button>
               </div>
@@ -473,6 +518,36 @@ export function ChatInterface() {
         </div>
       </div>
       <AuthDialog isOpen={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
+      {/* Edit Name Dialog */}
+      <Dialog open={isEditingName} onOpenChange={setIsEditingName}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Ubah Nama Profil</DialogTitle>
+            <DialogDescription>
+              Masukkan nama panggilan Anda yang baru.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center space-x-2 py-4">
+            <Input
+              autoFocus
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              placeholder="Nama panggilan"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveName();
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditingName(false)}>
+              Batal
+            </Button>
+            <Button onClick={handleSaveName}>
+              Simpan Perubahan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

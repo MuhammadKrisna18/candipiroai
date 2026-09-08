@@ -10,8 +10,11 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase only if it hasn't been initialized already
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const auth = getAuth(app);
+// Initialize Firebase only if we have an API key (prevents build crash in Vercel)
+const app = typeof window !== "undefined" && firebaseConfig.apiKey && !getApps().length 
+  ? initializeApp(firebaseConfig) 
+  : getApps().length ? getApp() : null;
+
+const auth = app ? getAuth(app) : null as any;
 
 export { app, auth };

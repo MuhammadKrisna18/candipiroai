@@ -40,6 +40,10 @@ export function AuthDialog({ isOpen, onOpenChange }: AuthDialogProps) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) {
+      setError("Firebase is not configured. Please add your Firebase API key.");
+      return;
+    }
     setIsLoading(true);
     setError("");
     try {
@@ -56,6 +60,10 @@ export function AuthDialog({ isOpen, onOpenChange }: AuthDialogProps) {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!auth) {
+      setError("Firebase is not configured. Please add your Firebase API key.");
+      return;
+    }
     setIsLoading(true);
     setError("");
     try {

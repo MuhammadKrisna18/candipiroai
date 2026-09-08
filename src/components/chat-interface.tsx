@@ -46,6 +46,8 @@ export function ChatInterface() {
   }, [sessions, currentSessionId]);
 
   useEffect(() => {
+    if (!auth) return;
+    
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       if (firebaseUser) {
         setUser({

@@ -20,6 +20,9 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { AuthDialog } from "./auth-dialog";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 export function ChatInterface() {
   const [input, setInput] = useState("");
@@ -29,6 +32,7 @@ export function ChatInterface() {
   const [user, setUser] = useState<UserSession>({ isLoggedIn: false });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,6 +44,24 @@ export function ChatInterface() {
   useEffect(() => {
     scrollToBottom();
   }, [sessions, currentSessionId]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          isLoggedIn: true,
+          user: {
+            name: firebaseUser.displayName || "User",
+            email: firebaseUser.email || "",
+            avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${firebaseUser.email}`,
+          },
+        });
+      } else {
+        setUser({ isLoggedIn: false });
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     try {
@@ -186,18 +208,15 @@ export function ChatInterface() {
   };
 
   const handleLogin = () => {
-    setUser({
-      isLoggedIn: true,
-      user: {
-        name: "Guest Explorer",
-        email: "explorer@scigenius.com",
-        avatar: "https://picsum.photos/seed/user/100/100",
-      },
-    });
+    setIsAuthDialogOpen(true);
   };
 
-  const handleLogout = () => {
-    setUser({ isLoggedIn: false });
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -378,6 +397,7 @@ export function ChatInterface() {
           </div>
         </div>
       </div>
+      <AuthDialog isOpen={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen} />
     </div>
   );
 }

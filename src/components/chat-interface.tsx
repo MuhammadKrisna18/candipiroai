@@ -386,7 +386,7 @@ export function ChatInterface() {
                     How can I assist you today?
                   </h2>
                   <p className="text-muted-foreground max-w-lg mx-auto">
-                    Ask me anything about physics, friction, or general
+                    Ask me anything about programming, science, history, or general
                     knowledge in Indonesian or English.
                   </p>
                 </div>

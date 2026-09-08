@@ -1,9 +1,8 @@
-
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for an intelligent bilingual chatbot.
- * It detects the language (Indonesian or English) and topic (Physics or General Knowledge)
- * of a user's question and provides a comprehensive, language-appropriate answer.
+ * It detects the language (Indonesian or English) and topic (Programming or General Knowledge)
+ * to provide a context-aware and well-formatted response.
  *
  * - intelligentBilingualChatResponse - The main function to call the AI chat response flow.
  * - IntelligentBilingualChatResponseInput - The input type for the flow.

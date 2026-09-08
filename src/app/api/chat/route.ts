@@ -53,7 +53,7 @@ You MUST return ONLY valid JSON.
 Format:
 {
   "detectedLanguage": "Indonesian | English",
-  "detectedTopic": "Physics | Mathematics | General Knowledge",
+  "detectedTopic": "Programming | History | General Knowledge",
   "answer": "string with markdown formatting"
 }
 

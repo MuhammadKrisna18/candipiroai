@@ -105,11 +105,11 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                 variant="outline"
                 className={cn(
                   "text-[10px] py-0 px-1.5 font-medium flex gap-1 items-center border-accent text-accent-foreground",
-                  message.detectedTopic === "Physics" &&
+                  message.detectedTopic.toLowerCase() === "programming" &&
                     "bg-accent/10 border-accent",
                 )}
               >
-                {message.detectedTopic === "Physics" ? (
+                {message.detectedTopic.toLowerCase() === "programming" ? (
                   <Zap className="w-3 h-3" />
                 ) : (
                   <BookOpen className="w-3 h-3" />

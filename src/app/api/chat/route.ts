@@ -28,13 +28,18 @@ async function callOpenAI(messages: any[], retries = 3) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { question } = await req.json();
+    const body = await req.json();
+    let messages = body.messages;
 
-    if (!question || typeof question !== "string") {
-      return NextResponse.json(
-        { error: "No question provided" },
-        { status: 400 },
-      );
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      if (body.question && typeof body.question === "string") {
+        messages = [{ role: "user", content: body.question }];
+      } else {
+        return NextResponse.json(
+          { error: "No messages provided" },
+          { status: 400 },
+        );
+      }
     }
 
     const completion = await callOpenAI([
@@ -87,10 +92,10 @@ FORMAT RULES:
 - Always include units in final answers
 `,
       },
-      {
-        role: "user",
-        content: question,
-      },
+      ...messages.map((m: any) => ({
+        role: m.role || "user",
+        content: m.content || "",
+      })),
     ]);
 
     let text = completion.output_text || "";

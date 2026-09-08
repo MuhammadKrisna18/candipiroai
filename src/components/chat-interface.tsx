@@ -28,6 +28,7 @@ export function ChatInterface() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [user, setUser] = useState<UserSession>({ isLoggedIn: false });
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,28 @@ export function ChatInterface() {
   useEffect(() => {
     scrollToBottom();
   }, [sessions, currentSessionId]);
+
+  useEffect(() => {
+    try {
+      const savedSessions = localStorage.getItem("scigenius_chat_sessions");
+      if (savedSessions) {
+        const parsed = JSON.parse(savedSessions);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSessions(parsed);
+          setCurrentSessionId(parsed[0].id);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load sessions", e);
+    }
+    setIsInitialized(true);
+  }, []);
+
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem("scigenius_chat_sessions", JSON.stringify(sessions));
+    }
+  }, [sessions, isInitialized]);
 
   const currentSession = sessions.find((s) => s.id === currentSessionId);
 
@@ -98,13 +121,20 @@ export function ChatInterface() {
     setInput("");
     setIsLoading(true);
 
+    const targetSession = sessions.find((s) => s.id === sessionId);
+    const previousMessages = targetSession ? targetSession.messages : [];
+    const messagesToSend = [...previousMessages, userMessage].map((msg) => ({
+      role: msg.role === "ai" ? "assistant" : msg.role,
+      content: msg.content,
+    }));
+
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ question: input }),
+        body: JSON.stringify({ messages: messagesToSend }),
       });
 
       const data = await response.json();

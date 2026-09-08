@@ -21,8 +21,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { AuthDialog } from "./auth-dialog";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { collection, doc, onSnapshot, setDoc, deleteDoc, updateDoc, query, orderBy } from "firebase/firestore";
 
 export function ChatInterface() {
   const [input, setInput] = useState("");
@@ -66,81 +67,97 @@ export function ChatInterface() {
     return () => unsubscribe();
   }, []);
 
-  const getStorageKey = (uid?: string) => uid ? `scigenius_chat_sessions_${uid}` : null;
-
   useEffect(() => {
-    if (!user.isLoggedIn) {
-      // Guest users: do not load from localStorage. Clear sessions to ephemeral mode.
+    if (!user.isLoggedIn || !user.user?.uid || !db) {
       setSessions([]);
       setCurrentSessionId(null);
       setIsInitialized(true);
       return;
     }
 
-    // Logged in users: load from their specific storage key
-    const storageKey = getStorageKey(user.user?.uid);
-    if (!storageKey) return;
-
-    try {
-      const savedSessions = localStorage.getItem(storageKey);
-      if (savedSessions) {
-        const parsed = JSON.parse(savedSessions);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setSessions(parsed);
-          setCurrentSessionId(parsed[0].id);
-        } else {
-          setSessions([]);
-          setCurrentSessionId(null);
-        }
+    const q = query(collection(db, "users", user.user.uid, "sessions"), orderBy("lastUpdated", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const loadedSessions: ChatSession[] = [];
+      snapshot.forEach((doc) => {
+        loadedSessions.push(doc.data() as ChatSession);
+      });
+      setSessions(loadedSessions);
+      
+      // Auto-select the first session if none is selected
+      if (loadedSessions.length > 0) {
+        setCurrentSessionId((prevId) => {
+          if (!prevId || !loadedSessions.find(s => s.id === prevId)) {
+            return loadedSessions[0].id;
+          }
+          return prevId;
+        });
       } else {
-        setSessions([]);
         setCurrentSessionId(null);
       }
-    } catch (e) {
-      console.error("Failed to load sessions", e);
+      setIsInitialized(true);
+    }, (error) => {
+      console.error("Error fetching sessions:", error);
       setSessions([]);
-      setCurrentSessionId(null);
-    }
-    setIsInitialized(true);
-  }, [user.isLoggedIn, user.user?.uid]);
+      setIsInitialized(true);
+    });
 
-  useEffect(() => {
-    // Only save to localStorage if user is logged in
-    if (isInitialized && user.isLoggedIn && user.user?.uid) {
-      const storageKey = getStorageKey(user.user.uid);
-      if (storageKey) {
-        localStorage.setItem(storageKey, JSON.stringify(sessions));
-      }
-    }
-  }, [sessions, isInitialized, user.isLoggedIn, user.user?.uid]);
+    return () => unsubscribe();
+  }, [user.isLoggedIn, user.user?.uid]);
 
   const currentSession = sessions.find((s) => s.id === currentSessionId);
 
-  const handleDeleteSession = (sessionId: string) => {
-    setSessions((prev) => {
-      const filtered = prev.filter((s) => s.id !== sessionId);
-      if (currentSessionId === sessionId) {
-        setCurrentSessionId(filtered.length > 0 ? filtered[0].id : null);
+  const saveSession = async (session: ChatSession) => {
+    if (user.isLoggedIn && user.user?.uid && db) {
+      try {
+        await setDoc(doc(db, "users", user.user.uid, "sessions", session.id), session);
+      } catch (e) {
+        console.error("Error saving session", e);
       }
-      return filtered;
-    });
+    } else {
+      setSessions((prev) => {
+        const exists = prev.find(s => s.id === session.id);
+        if (exists) {
+          return prev.map(s => s.id === session.id ? session : s).sort((a, b) => b.lastUpdated - a.lastUpdated);
+        }
+        return [session, ...prev].sort((a, b) => b.lastUpdated - a.lastUpdated);
+      });
+    }
   };
 
-  const handleTogglePin = (sessionId: string) => {
-    setSessions((prev) => {
-      const session = prev.find((s) => s.id === sessionId);
-      if (!session) return prev;
-      
-      const pinnedCount = prev.filter((s) => s.isPinned).length;
-      if (!session.isPinned && pinnedCount >= 5) {
-        alert("You can only pin up to 5 conversations.");
-        return prev;
+  const handleDeleteSession = async (sessionId: string) => {
+    if (user.isLoggedIn && user.user?.uid && db) {
+      try {
+        await deleteDoc(doc(db, "users", user.user.uid, "sessions", sessionId));
+        if (currentSessionId === sessionId) {
+          const filtered = sessions.filter(s => s.id !== sessionId);
+          setCurrentSessionId(filtered.length > 0 ? filtered[0].id : null);
+        }
+      } catch (e) {
+        console.error("Error deleting session", e);
       }
+    } else {
+      setSessions((prev) => {
+        const filtered = prev.filter((s) => s.id !== sessionId);
+        if (currentSessionId === sessionId) {
+          setCurrentSessionId(filtered.length > 0 ? filtered[0].id : null);
+        }
+        return filtered;
+      });
+    }
+  };
 
-      return prev.map((s) =>
-        s.id === sessionId ? { ...s, isPinned: !s.isPinned } : s
-      );
-    });
+  const handleTogglePin = async (sessionId: string) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session) return;
+    
+    const pinnedCount = sessions.filter((s) => s.isPinned).length;
+    if (!session.isPinned && pinnedCount >= 5) {
+      alert("You can only pin up to 5 conversations.");
+      return;
+    }
+
+    const updatedSession = { ...session, isPinned: !session.isPinned };
+    await saveSession(updatedSession);
   };
 
   const handleNewChat = () => {
@@ -151,24 +168,26 @@ export function ChatInterface() {
       lastUpdated: Date.now(),
       messages: [],
     };
-    setSessions((prev) => [newSession, ...prev]);
-    setCurrentSessionId(newSessionId);
-    setInput("");
+    saveSession(newSession).then(() => {
+      setCurrentSessionId(newSessionId);
+      setInput("");
+    });
   };
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
     let sessionId = currentSessionId;
-    if (!sessionId) {
+    let targetSession = sessions.find((s) => s.id === sessionId);
+    
+    if (!sessionId || !targetSession) {
       sessionId = crypto.randomUUID();
-      const newSession: ChatSession = {
+      targetSession = {
         id: sessionId,
         title: input.slice(0, 30) + (input.length > 30 ? "..." : ""),
         lastUpdated: Date.now(),
         messages: [],
       };
-      setSessions((prev) => [newSession, ...prev]);
       setCurrentSessionId(sessionId);
     }
 
@@ -179,29 +198,21 @@ export function ChatInterface() {
       timestamp: Date.now(),
     };
 
-    setSessions((prev) =>
-      prev.map((s) => {
-        if (s.id === sessionId) {
-          return {
-            ...s,
-            messages: [...s.messages, userMessage],
-            lastUpdated: Date.now(),
-            title:
-              s.messages.length === 0
-                ? input.slice(0, 30) + (input.length > 30 ? "..." : "")
-                : s.title,
-          };
-        }
-        return s;
-      }),
-    );
-
+    const sessionWithUserMsg: ChatSession = {
+      ...targetSession,
+      messages: [...targetSession.messages, userMessage],
+      lastUpdated: Date.now(),
+      title: targetSession.messages.length === 0
+          ? input.slice(0, 30) + (input.length > 30 ? "..." : "")
+          : targetSession.title,
+    };
+    
+    await saveSession(sessionWithUserMsg);
+    
     setInput("");
     setIsLoading(true);
 
-    const targetSession = sessions.find((s) => s.id === sessionId);
-    const previousMessages = targetSession ? targetSession.messages : [];
-    const messagesToSend = [...previousMessages, userMessage].map((msg) => ({
+    const messagesToSend = [...targetSession.messages, userMessage].map((msg) => ({
       role: msg.role === "ai" ? "assistant" : msg.role,
       content: msg.content,
     }));
@@ -209,17 +220,12 @@ export function ChatInterface() {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: messagesToSend }),
       });
 
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Request failed");
-      }
+      if (!response.ok) throw new Error(data.error || "Request failed");
 
       const aiMessage: ChatMessage = {
         id: crypto.randomUUID(),
@@ -230,18 +236,13 @@ export function ChatInterface() {
         detectedTopic: data.detectedTopic,
       };
 
-      setSessions((prev) =>
-        prev.map((s) => {
-          if (s.id === sessionId) {
-            return {
-              ...s,
-              messages: [...s.messages, aiMessage],
-              lastUpdated: Date.now(),
-            };
-          }
-          return s;
-        }),
-      );
+      const finalSession = {
+        ...sessionWithUserMsg,
+        messages: [...sessionWithUserMsg.messages, aiMessage],
+        lastUpdated: Date.now(),
+      };
+      
+      await saveSession(finalSession);
     } catch (error) {
       console.error("Failed to get AI response:", error);
       const errorMessage: ChatMessage = {
@@ -250,14 +251,13 @@ export function ChatInterface() {
         content: "Sorry, I encountered an error. Please try again later.",
         timestamp: Date.now(),
       };
-      setSessions((prev) =>
-        prev.map((s) => {
-          if (s.id === sessionId) {
-            return { ...s, messages: [...s.messages, errorMessage] };
-          }
-          return s;
-        }),
-      );
+      
+      const errorSession = {
+        ...sessionWithUserMsg,
+        messages: [...sessionWithUserMsg.messages, errorMessage],
+        lastUpdated: Date.now(),
+      };
+      await saveSession(errorSession);
     } finally {
       setIsLoading(false);
     }

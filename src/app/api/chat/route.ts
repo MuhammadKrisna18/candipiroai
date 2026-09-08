@@ -65,7 +65,7 @@ Strict rules:
 
 Rules for answer:
 - Use markdown
-- Use multiple paragraphs (\\n\\n)
+- Use multiple paragraphs (\n\n)
 - Use headings (###)
 - Use bullet points (-)
 - Use **bold**
@@ -98,7 +98,7 @@ FORMAT RULES:
       })),
     ]);
 
-    let text = completion.output_text || "";
+    let text = completion?.output_text || "";
     text = text.trim();
 
     let parsed;

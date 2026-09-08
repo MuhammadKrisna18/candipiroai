@@ -19,6 +19,7 @@ export interface ChatSession {
 export interface UserSession {
   isLoggedIn: boolean;
   user?: {
+    uid: string;
     name: string;
     email: string;
     avatar?: string;

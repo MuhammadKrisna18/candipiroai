@@ -24,17 +24,24 @@ export function AuthDialog({ isOpen, onOpenChange }: AuthDialogProps) {
 
   // Convert Firebase error code to user-friendly message
   const getErrorMessage = (errCode: string) => {
+    console.error("Firebase Auth Error:", errCode); // Log it for debugging
     switch (errCode) {
       case "auth/invalid-credential":
-        return "Incorrect email or password.";
+        return "Incorrect email or password, or the account does not exist.";
+      case "auth/user-not-found":
+        return "No account found with this email. Please click Create Account first.";
+      case "auth/wrong-password":
+        return "Incorrect password.";
       case "auth/email-already-in-use":
         return "An account with this email already exists.";
       case "auth/weak-password":
         return "Password should be at least 6 characters.";
       case "auth/invalid-email":
         return "Please enter a valid email address.";
+      case "auth/operation-not-allowed":
+        return "Email/Password sign-in is not enabled in your Firebase Console. Please enable it in the Authentication > Sign-in method tab.";
       default:
-        return "An unexpected error occurred. Please try again.";
+        return `An unexpected error occurred (${errCode || "Unknown"}). Please try again.`;
     }
   };
 

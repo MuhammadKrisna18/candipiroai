@@ -53,6 +53,7 @@ export function ChatInterface() {
         setUser({
           isLoggedIn: true,
           user: {
+            uid: firebaseUser.uid,
             name: firebaseUser.displayName || "User",
             email: firebaseUser.email || "",
             avatar: firebaseUser.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${firebaseUser.email}`,
@@ -65,27 +66,53 @@ export function ChatInterface() {
     return () => unsubscribe();
   }, []);
 
+  const getStorageKey = (uid?: string) => uid ? `scigenius_chat_sessions_${uid}` : null;
+
   useEffect(() => {
+    if (!user.isLoggedIn) {
+      // Guest users: do not load from localStorage. Clear sessions to ephemeral mode.
+      setSessions([]);
+      setCurrentSessionId(null);
+      setIsInitialized(true);
+      return;
+    }
+
+    // Logged in users: load from their specific storage key
+    const storageKey = getStorageKey(user.user?.uid);
+    if (!storageKey) return;
+
     try {
-      const savedSessions = localStorage.getItem("scigenius_chat_sessions");
+      const savedSessions = localStorage.getItem(storageKey);
       if (savedSessions) {
         const parsed = JSON.parse(savedSessions);
         if (Array.isArray(parsed) && parsed.length > 0) {
           setSessions(parsed);
           setCurrentSessionId(parsed[0].id);
+        } else {
+          setSessions([]);
+          setCurrentSessionId(null);
         }
+      } else {
+        setSessions([]);
+        setCurrentSessionId(null);
       }
     } catch (e) {
       console.error("Failed to load sessions", e);
+      setSessions([]);
+      setCurrentSessionId(null);
     }
     setIsInitialized(true);
-  }, []);
+  }, [user.isLoggedIn, user.user?.uid]);
 
   useEffect(() => {
-    if (isInitialized) {
-      localStorage.setItem("scigenius_chat_sessions", JSON.stringify(sessions));
+    // Only save to localStorage if user is logged in
+    if (isInitialized && user.isLoggedIn && user.user?.uid) {
+      const storageKey = getStorageKey(user.user.uid);
+      if (storageKey) {
+        localStorage.setItem(storageKey, JSON.stringify(sessions));
+      }
     }
-  }, [sessions, isInitialized]);
+  }, [sessions, isInitialized, user.isLoggedIn, user.user?.uid]);
 
   const currentSession = sessions.find((s) => s.id === currentSessionId);
 

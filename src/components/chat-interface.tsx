@@ -37,9 +37,18 @@ export function ChatInterface() {
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
   };
 
   useEffect(() => {
@@ -210,6 +219,9 @@ export function ChatInterface() {
     await saveSession(sessionWithUserMsg);
     
     setInput("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
     setIsLoading(true);
 
     const messagesToSend = [...targetSession.messages, userMessage].map((msg) => ({
@@ -405,11 +417,13 @@ export function ChatInterface() {
                   <ChatMessageBubble key={msg.id} message={msg} />
                 ))}
                 {isLoading && (
-                  <div className="flex justify-start mb-6 animate-pulse">
-                    <div className="chat-bubble-ai flex gap-2 items-center">
-                      <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" />
-                      <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce delay-150" />
-                      <div className="w-2 h-2 rounded-full bg-primary/40 animate-bounce delay-300" />
+                  <div className="flex w-full mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out justify-start">
+                    <div className="max-w-[85%] md:max-w-[70%] flex flex-col items-start">
+                      <div className="chat-bubble-ai flex items-center gap-1.5 h-10 px-4">
+                        <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.3s]" />
+                        <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:-0.15s]" />
+                        <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" />
+                      </div>
                     </div>
                   </div>
                 )}
@@ -424,9 +438,10 @@ export function ChatInterface() {
           <div className="max-w-4xl mx-auto">
             <div className="relative bg-white dark:bg-card rounded-2xl border shadow-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
               <Textarea
+                ref={textareaRef}
                 placeholder="Type your question here... (Indonesian or English)"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleInput}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();

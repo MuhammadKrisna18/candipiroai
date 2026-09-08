@@ -14,6 +14,7 @@ export interface ChatSession {
   title: string;
   lastUpdated: number;
   messages: ChatMessage[];
+  isPinned?: boolean;
 }
 
 export interface UserSession {

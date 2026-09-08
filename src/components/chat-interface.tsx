@@ -116,6 +116,33 @@ export function ChatInterface() {
 
   const currentSession = sessions.find((s) => s.id === currentSessionId);
 
+  const handleDeleteSession = (sessionId: string) => {
+    setSessions((prev) => {
+      const filtered = prev.filter((s) => s.id !== sessionId);
+      if (currentSessionId === sessionId) {
+        setCurrentSessionId(filtered.length > 0 ? filtered[0].id : null);
+      }
+      return filtered;
+    });
+  };
+
+  const handleTogglePin = (sessionId: string) => {
+    setSessions((prev) => {
+      const session = prev.find((s) => s.id === sessionId);
+      if (!session) return prev;
+      
+      const pinnedCount = prev.filter((s) => s.isPinned).length;
+      if (!session.isPinned && pinnedCount >= 5) {
+        alert("You can only pin up to 5 conversations.");
+        return prev;
+      }
+
+      return prev.map((s) =>
+        s.id === sessionId ? { ...s, isPinned: !s.isPinned } : s
+      );
+    });
+  };
+
   const handleNewChat = () => {
     const newSessionId = crypto.randomUUID();
     const newSession: ChatSession = {
@@ -257,6 +284,8 @@ export function ChatInterface() {
           currentSessionId={currentSessionId}
           onSelectSession={setCurrentSessionId}
           onNewChat={handleNewChat}
+          onDeleteSession={handleDeleteSession}
+          onTogglePin={handleTogglePin}
         />
       </div>
 
@@ -283,6 +312,8 @@ export function ChatInterface() {
                     handleNewChat();
                     setIsSidebarOpen(false);
                   }}
+                  onDeleteSession={handleDeleteSession}
+                  onTogglePin={handleTogglePin}
                 />
               </SheetContent>
             </Sheet>

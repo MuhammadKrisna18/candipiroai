@@ -81,19 +81,7 @@ FORMATTING RULES FOR "answer":
       };
     }
 
-    // 🔥 AUTO FIX LATEX ERROR (SAFE VERSION)
-    if (parsed.answer) {
-      parsed.answer = parsed.answer
 
-        .replace(/(?<!\\)ext\{/g, "\\text{")
-        .replace(/\brac\b/g, "\\frac")
-        .replace(/=\s*_s/g, "= \\mu_s")
-        .replace(/=\s*_k/g, "= \\mu_k")
-        .replace(/\\imes/g, "\\cdot")
-        .replace(/imes/g, "\\cdot")
-        .replace(/mimes/g, "\\cdot")
-        .replace(/,(\d+)/g, ".$1");
-    }
 
     if (typeof parsed.answer !== "string") {
       parsed.answer = JSON.stringify(parsed.answer, null, 2);

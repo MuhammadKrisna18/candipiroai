@@ -5,17 +5,12 @@ import { openai } from "@/lib/openai";
 async function callOpenAI(messages: any[], retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
-      return await openai.responses.create({
+      const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
-        input: messages
-          .map((m) => `${m.role.toUpperCase()}:\n${m.content}`)
-          .join("\n\n"),
-        text: {
-          format: {
-            type: "json_object",
-          },
-        },
+        messages: messages,
+        response_format: { type: "json_object" },
       });
+      return response.choices[0]?.message?.content || "";
     } catch (err) {
       console.log("Retry:", i + 1, err);
 
@@ -42,7 +37,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const completion = await callOpenAI([
+    let text = await callOpenAI([
       {
         role: "system",
         content: `
@@ -90,7 +85,6 @@ FORMAT RULES:
       })),
     ]);
 
-    let text = completion?.output_text || "";
     text = text.trim();
 
     let parsed;

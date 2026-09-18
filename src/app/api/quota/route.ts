@@ -6,14 +6,13 @@ export async function GET(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
   
   const id = uid ? `uid_${uid}` : `ip_${ip}`;
-  const maxTokens = uid ? MAX_TOKENS_LOGGED_IN : MAX_TOKENS_ANONYMOUS;
+  const maxTokens = id.includes(".") || id.includes(":") ? MAX_TOKENS_ANONYMOUS : MAX_TOKENS_LOGGED_IN;
+  const currentQuota = await getQuota(id);
 
-  const quota = getQuota(id);
-  
   return NextResponse.json({
-    used: quota.usedTokens,
+    percentage: Math.max(0, 100 - (currentQuota.usedTokens / maxTokens * 100)),
+    used: currentQuota.usedTokens,
     max: maxTokens,
-    percentage: Math.max(0, 100 - (quota.usedTokens / maxTokens * 100)),
-    resetTime: quota.resetTime
+    resetTime: currentQuota.resetTime
   });
 }

@@ -47,7 +47,8 @@ export function useChatSessions(user: UserSession, isAuthLoading: boolean) {
   const saveSession = async (session: ChatSession) => {
     if (user.isLoggedIn && user.user?.uid && db) {
       try {
-        await setDoc(doc(db, "users", user.user.uid, "sessions", session.id), session);
+        const { messages, ...sessionMeta } = session;
+        await setDoc(doc(db, "users", user.user.uid, "sessions", session.id), sessionMeta);
       } catch (e) {
         console.error("Error saving session", e);
       }

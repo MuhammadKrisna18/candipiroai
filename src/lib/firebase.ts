@@ -11,12 +11,13 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Initialize Firebase only if we have an API key (prevents build crash in Vercel)
-const app = typeof window !== "undefined" && firebaseConfig.apiKey && !getApps().length 
+// Initialize Firebase (works on client and server)
+const app = !getApps().length && firebaseConfig.apiKey 
   ? initializeApp(firebaseConfig) 
   : getApps().length ? getApp() : null;
 
-const auth = app ? getAuth(app) : null as any;
+// getAuth works best on client, but getFirestore runs fine on server Node.js
+const auth = app && typeof window !== "undefined" ? getAuth(app) : null as any;
 const db = app ? getFirestore(app) : null as any;
 
 export { app, auth, db };

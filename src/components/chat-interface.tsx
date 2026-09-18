@@ -16,6 +16,7 @@ import { AuthDialog } from "./auth-dialog";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuota } from "@/hooks/use-quota";
 import { useChatSessions } from "@/hooks/use-chat-sessions";
+import { useChatMessages } from "@/hooks/use-chat-messages";
 
 export function ChatInterface() {
   const { user, isAuthLoading, handleLogout, handleSaveName } = useAuth();
@@ -31,12 +32,21 @@ export function ChatInterface() {
     handleNewChat
   } = useChatSessions(user, isAuthLoading);
 
+  const {
+    messages: dbMessages,
+    isMessagesLoading,
+    saveMessage
+  } = useChatMessages(user, currentSessionId, isAuthLoading);
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
+
+  const currentSession = sessions.find((s) => s.id === currentSessionId);
+  const activeMessages = user.isLoggedIn ? dbMessages : (currentSession?.messages || []);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -46,9 +56,7 @@ export function ChatInterface() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [sessions, currentSessionId]);
-
-  const currentSession = sessions.find((s) => s.id === currentSessionId);
+  }, [activeMessages, currentSessionId]);
 
   const onSaveName = async () => {
     const success = await handleSaveName(editedName);
@@ -79,21 +87,25 @@ export function ChatInterface() {
       timestamp: Date.now(),
     };
 
+    // Update Session Metadata (and local messages if guest)
     const sessionWithUserMsg: ChatSession = {
       ...targetSession,
-      messages: [...targetSession.messages, userMessage],
+      messages: user.isLoggedIn ? undefined : [...activeMessages, userMessage],
       lastUpdated: Date.now(),
-      title: targetSession.messages.length === 0
+      title: activeMessages.length === 0
           ? input.slice(0, 30) + (input.length > 30 ? "..." : "")
           : targetSession.title,
     };
     
     await saveSession(sessionWithUserMsg);
+    if (user.isLoggedIn) {
+      await saveMessage(sessionId, userMessage);
+    }
     
     setInput("");
     setIsLoading(true);
 
-    const messagesToSend = [...targetSession.messages, userMessage].map((msg) => ({
+    const messagesToSend = [...activeMessages, userMessage].map((msg) => ({
       role: msg.role === "ai" ? "assistant" : msg.role,
       content: msg.content,
     }));
@@ -126,11 +138,15 @@ export function ChatInterface() {
 
       const finalSession = {
         ...sessionWithUserMsg,
-        messages: [...sessionWithUserMsg.messages, aiMessage],
+        messages: user.isLoggedIn ? undefined : [...activeMessages, userMessage, aiMessage],
         lastUpdated: Date.now(),
       };
       
       await saveSession(finalSession);
+      if (user.isLoggedIn) {
+        await saveMessage(sessionId, aiMessage);
+      }
+
     } catch (error) {
       console.error("Failed to get AI response:", error);
       const errorMessage: ChatMessage = {
@@ -142,10 +158,13 @@ export function ChatInterface() {
       
       const errorSession = {
         ...sessionWithUserMsg,
-        messages: [...sessionWithUserMsg.messages, errorMessage],
+        messages: user.isLoggedIn ? undefined : [...activeMessages, userMessage, errorMessage],
         lastUpdated: Date.now(),
       };
       await saveSession(errorSession);
+      if (user.isLoggedIn) {
+        await saveMessage(sessionId, errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -189,9 +208,9 @@ export function ChatInterface() {
           <div className="max-w-6xl mx-auto h-full flex flex-col">
             {!isInitialized || isAuthLoading ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
-                <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+                <p className="text-sm text-muted-foreground animate-pulse">Memuat aplikasi...</p>
               </div>
-            ) : (!currentSession || currentSession.messages.length === 0) ? (
+            ) : (!currentSession || activeMessages.length === 0) ? (
               <ChatWelcome
                 user={user}
                 handleLogin={() => setIsAuthDialogOpen(true)}
@@ -199,7 +218,10 @@ export function ChatInterface() {
               />
             ) : (
               <div className="space-y-2">
-                {currentSession.messages.map((msg) => (
+                {isMessagesLoading && (
+                   <div className="text-center text-xs text-muted-foreground py-4 animate-pulse">Memuat riwayat pesan...</div>
+                )}
+                {activeMessages.map((msg) => (
                   <ChatMessageBubble key={msg.id} message={msg} />
                 ))}
                 {isLoading && (

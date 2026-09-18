@@ -1,3 +1,6 @@
+import { db } from "./firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+
 export const MAX_TOKENS_LOGGED_IN = 50000;
 export const MAX_TOKENS_ANONYMOUS = 10000;
 export const RESET_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
@@ -7,22 +10,36 @@ export interface QuotaRecord {
   resetTime: number;
 }
 
-// In-memory store (IP -> QuotaRecord)
-export const tokenQuotaMap = new Map<string, QuotaRecord>();
-
-export function getQuota(ip: string): QuotaRecord {
+export async function getQuota(id: string): Promise<QuotaRecord> {
   const now = Date.now();
-  let record = tokenQuotaMap.get(ip);
-  if (!record || now > record.resetTime) {
-    record = { usedTokens: 0, resetTime: now + RESET_WINDOW_MS };
-    tokenQuotaMap.set(ip, record);
+  if (!db) {
+    return { usedTokens: 0, resetTime: now + RESET_WINDOW_MS };
   }
+
+  const quotaRef = doc(db, "quotas", id);
+  const snap = await getDoc(quotaRef);
+  
+  if (snap.exists()) {
+    const data = snap.data() as QuotaRecord;
+    if (now > data.resetTime) {
+      const newRecord = { usedTokens: 0, resetTime: now + RESET_WINDOW_MS };
+      await setDoc(quotaRef, newRecord);
+      return newRecord;
+    }
+    return data;
+  }
+
+  const record = { usedTokens: 0, resetTime: now + RESET_WINDOW_MS };
+  await setDoc(quotaRef, record);
   return record;
 }
 
-export function updateQuota(ip: string, tokensUsed: number): QuotaRecord {
-  const record = getQuota(ip);
+export async function updateQuota(id: string, tokensUsed: number): Promise<QuotaRecord> {
+  const record = await getQuota(id);
   record.usedTokens += tokensUsed;
-  tokenQuotaMap.set(ip, record);
+  
+  if (db) {
+    await setDoc(doc(db, "quotas", id), record);
+  }
   return record;
 }

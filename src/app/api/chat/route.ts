@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const id = uid ? `uid_${uid}` : `ip_${ip}`;
     const maxTokens = uid ? MAX_TOKENS_LOGGED_IN : MAX_TOKENS_ANONYMOUS;
     
-    const quota = getQuota(id);
+    const quota = await getQuota(id);
     
     if (quota.usedTokens >= maxTokens) {
       const resetDate = new Date(quota.resetTime);
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const aiResult = await generateChatResponse(messages);
 
     // 4. Update Quota
-    const newQuota = updateQuota(id, aiResult.usage);
+    const newQuota = await updateQuota(id, aiResult.usage);
 
     // 5. Return HTTP Response
     return NextResponse.json({

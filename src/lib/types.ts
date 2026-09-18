@@ -13,7 +13,7 @@ export interface ChatSession {
   id: string;
   title: string;
   lastUpdated: number;
-  messages: ChatMessage[];
+  messages?: ChatMessage[];
   isPinned?: boolean;
 }
 

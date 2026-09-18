@@ -407,7 +407,7 @@ export function ChatInterface() {
 
         {/* Chat Messages */}
         <ScrollArea className="flex-1 px-4 md:px-8 py-6">
-          <div className="max-w-4xl mx-auto h-full flex flex-col">
+          <div className="max-w-6xl mx-auto h-full flex flex-col">
             {!isInitialized ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center opacity-50">
                 <Sparkles className="w-8 h-8 text-primary animate-pulse mb-4" />
@@ -482,7 +482,7 @@ export function ChatInterface() {
 
         {/* Input Area */}
         <div className="p-4 md:p-8 pt-0 pb-8 relative z-10">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="relative glass-panel rounded-3xl overflow-hidden focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
               <Textarea
                 ref={textareaRef}

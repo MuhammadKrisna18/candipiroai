@@ -96,11 +96,11 @@ export function ChatHistory({
   };
 
   return (
-    <div className="flex flex-col h-full bg-sidebar border-r">
-      <div className="p-4 border-b">
+    <div className="flex flex-col h-full bg-white/40 dark:bg-slate-950/40 backdrop-blur-md border-r border-white/40 dark:border-slate-800/50">
+      <div className="p-4 border-b border-white/20 dark:border-slate-800/50">
         <Button 
           onClick={onNewChat} 
-          className="w-full flex gap-2 justify-center items-center font-semibold bg-primary hover:bg-primary/90"
+          className="w-full flex gap-2 justify-center items-center font-semibold bg-gradient-to-br from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/30 transition-all rounded-xl py-6"
         >
           <Plus className="w-4 h-4" />
           Obrolan Baru

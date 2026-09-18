@@ -327,7 +327,7 @@ export function ChatInterface() {
       {/* Main Chat Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-16 flex items-center justify-between px-4 md:px-8 border-b bg-white/50 backdrop-blur-md sticky top-0 z-10">
+        <header className="h-16 flex items-center justify-between px-4 md:px-8 glass-nav sticky top-0 z-10 transition-all">
           <div className="flex items-center gap-3">
             <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
               <SheetTrigger asChild>
@@ -354,10 +354,10 @@ export function ChatInterface() {
             </Sheet>
 
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
-              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
+              <h1 className="text-xl font-headline font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
                 CandipiroAI
               </h1>
             </div>
@@ -415,14 +415,14 @@ export function ChatInterface() {
               </div>
             ) : (!currentSession || currentSession.messages.length === 0) ? (
               <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6 px-4">
-                <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mb-2">
-                  <Sparkles className="w-10 h-10 text-primary" />
+                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center mb-4 border border-white/50 dark:border-slate-800/50 shadow-xl shadow-primary/5">
+                  <Sparkles className="w-12 h-12 text-primary animate-pulse" />
                 </div>
-                <div className="space-y-2">
-                  <h2 className="text-3xl font-bold text-primary">
-                    Selamat datang di CandipiroAI{user.isLoggedIn && user.user?.name ? `, ${user.user.name}` : ""}
+                <div className="space-y-4">
+                  <h2 className="text-4xl md:text-5xl font-headline font-extrabold bg-clip-text text-transparent bg-gradient-to-br from-primary to-accent drop-shadow-sm">
+                    Selamat datang di CandipiroAI{user.isLoggedIn && user.user?.name ? `,\n${user.user.name}` : ""}
                   </h2>
-                  <p className="text-muted-foreground max-w-lg mx-auto">
+                  <p className="text-muted-foreground text-lg max-w-lg mx-auto">
                     {!user.isLoggedIn 
                       ? "Silakan Masuk atau buat akun terlebih dahulu untuk memulai obrolan dan menyimpan riwayat percakapan Anda."
                       : "Ada yang bisa saya bantu hari ini? Jangan ragu untuk bertanya apa saja dalam Bahasa Indonesia maupun Inggris!"}
@@ -445,12 +445,14 @@ export function ChatInterface() {
                       <button
                         key={example}
                         onClick={() => setInput(example)}
-                        className="text-left p-4 rounded-xl border border-border bg-card shadow-sm hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center justify-between group"
+                        className="text-left p-5 rounded-2xl glass-panel hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all flex items-center justify-between group hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/5 border-white/60 dark:border-slate-700/50"
                       >
-                        <span className="text-sm font-medium text-foreground/80 group-hover:text-primary">
+                        <span className="text-sm font-medium text-foreground/80 group-hover:text-primary transition-colors">
                           {example}
                         </span>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        <div className="w-8 h-8 rounded-full bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                          <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -479,9 +481,9 @@ export function ChatInterface() {
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="p-4 md:p-8 pt-0">
+        <div className="p-4 md:p-8 pt-0 pb-8 relative z-10">
           <div className="max-w-4xl mx-auto">
-            <div className="relative bg-white dark:bg-card rounded-2xl border shadow-lg overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+            <div className="relative glass-panel rounded-3xl overflow-hidden focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
               <Textarea
                 ref={textareaRef}
                 placeholder="Ketik pertanyaan Anda di sini... (Bahasa Indonesia atau Inggris)"
@@ -495,7 +497,7 @@ export function ChatInterface() {
                 }}
                 className="w-full min-h-[60px] max-h-48 border-0 focus-visible:ring-0 resize-none py-4 px-6 text-base leading-relaxed"
               />
-              <div className="flex items-center justify-between px-4 py-3 border-t bg-muted/30">
+              <div className="flex items-center justify-between px-6 py-3 border-t border-white/20 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30">
                 <div className="flex gap-1 text-[10px] text-muted-foreground items-center font-medium">
                   <ShieldCheck className="w-3 h-3 text-accent" />
                   CandipiroAI
@@ -503,8 +505,7 @@ export function ChatInterface() {
                 <Button
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
-                  size="sm"
-                  className="rounded-full px-5 font-semibold transition-all"
+                  className="rounded-full px-6 py-5 font-semibold transition-all bg-gradient-to-br from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/30"
                 >
                   {isLoading ? "Memikirkan..." : "Kirim"}
                   {!isLoading && <Send className="w-4 h-4 ml-2" />}

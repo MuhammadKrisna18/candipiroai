@@ -1,5 +1,5 @@
-export const MAX_TOKENS_LOGGED_IN = 5000;
-export const MAX_TOKENS_ANONYMOUS = 1000;
+export const MAX_TOKENS_LOGGED_IN = 50000;
+export const MAX_TOKENS_ANONYMOUS = 10000;
 export const RESET_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
 
 export interface QuotaRecord {

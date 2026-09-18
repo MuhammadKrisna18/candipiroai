@@ -40,8 +40,14 @@ export async function POST(req: NextRequest) {
     const quota = getQuota(id);
     
     if (quota.usedTokens >= maxTokens) {
+      const resetDate = new Date(quota.resetTime);
+      const timeStr = resetDate.toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit' });
+      const msg = uid 
+        ? `Batas energi (${maxTokens.toLocaleString('id-ID')} token) Anda sudah habis. Energi akan di-reset penuh pada pukul ${timeStr}.`
+        : `Batas energi tamu (${maxTokens.toLocaleString('id-ID')} token) Anda sudah habis. Silakan Masuk (Login) untuk mendapatkan kuota 50.000 token, atau tunggu reset pada pukul ${timeStr}.`;
+        
       return NextResponse.json(
-        { error: "Batas token (energi) Anda sudah habis. Silakan tunggu hingga reset atau login untuk kuota lebih banyak." },
+        { error: msg },
         { status: 429 }
       );
     }

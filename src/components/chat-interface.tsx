@@ -39,7 +39,7 @@ export function ChatInterface() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
-  const [quota, setQuota] = useState<{ percentage: number; used: number; max: number } | null>(null);
+  const [quota, setQuota] = useState<{ percentage: number; used: number; max: number; resetTime: number } | null>(null);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -387,12 +387,15 @@ export function ChatInterface() {
 
           <div className="flex items-center gap-4">
             {quota && (
-              <div className="hidden sm:flex flex-col items-end">
-                <div className="flex items-center justify-between w-24 mb-1">
-                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Energi</span>
+              <div 
+                className="hidden sm:flex flex-col items-end cursor-help group"
+                title={`Sisa Kuota: ${(quota.max - quota.used).toLocaleString('id-ID')} / ${quota.max.toLocaleString('id-ID')} Tokens\nReset pada: ${new Date(quota.resetTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`}
+              >
+                <div className="flex items-center justify-between w-28 mb-1">
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest group-hover:text-primary transition-colors">Energi</span>
                   <span className="text-[10px] font-bold text-primary">{Math.round(quota.percentage)}%</span>
                 </div>
-                <div className="h-1.5 w-24 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                <div className="h-2 w-28 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
                   <div 
                     className={`h-full transition-all duration-1000 ease-out rounded-full ${quota.percentage < 20 ? 'bg-destructive' : 'bg-gradient-to-r from-primary to-accent'}`}
                     style={{ width: `${quota.percentage}%` }}

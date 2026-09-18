@@ -16,7 +16,7 @@ Whether you need help writing a school essay, understanding complex science conc
 - **✨ Premium Glassmorphism UI:** A sleek, beautiful, and modern interface with blurred backgrounds, vibrant gradients, and smooth animations that feels incredibly premium.
 - **☁️ Magic Cloud Sync (Like WhatsApp Web):** If you log in with your email on your Laptop and your Phone at the same time, your chat will magically sync! If you type a message on your Phone, it instantly appears on your Laptop screen.
 - **🕵️ Secret / Guest Mode:** Want to ask something embarrassing without leaving a trace? Just use the app without logging in! Once you close the app, your chat is permanently destroyed.
-- **⚡ Energy / Token Quota:** Shows a real-time energy bar so you know exactly how much quota you have left. (Guests get 1,000 tokens, Logged-in users get 5,000 tokens per 3 hours).
+- **⚡ Energy / Token Quota:** Shows a real-time energy bar so you know exactly how much quota you have left. (Guests get 10,000 tokens, Logged-in users get 50,000 tokens per 3 hours).
 - **📌 Pin Your Favorites:** Have a really important conversation? You can "Pin" (nail) up to 5 chats to the top of your screen so you never lose them.
 - **💻 Beautiful Code & LaTeX Display:** If you ask it to write computer code or math formulas, it will give you a beautiful, colorful code box with a one-click "Copy" button and properly formatted equations!
 
@@ -48,7 +48,7 @@ Entah Anda butuh bantuan mengerjakan PR sekolah, mencari tahu sejarah dunia, mem
 - **✨ Tampilan Glassmorphism Premium:** Desain antarmuka yang sangat modern, elegan, tembus pandang seperti kaca, dengan warna gradien yang hidup dan animasi halus.
 - **☁️ Ingatan Lintas Perangkat (Seperti WhatsApp Web):** Jika Anda *login* (masuk) menggunakan *email* di HP dan Laptop, obrolan Anda akan tersinkronisasi seperti sihir! Ketik pesan di HP, maka pesannya akan langsung muncul di layar Laptop Anda detik itu juga.
 - **🕵️ Mode Rahasia (Tamu):** Ingin bertanya sesuatu tapi tidak mau ketahuan? Pakai saja tanpa perlu *login*. Saat Anda menutup layarnya, semua obrolan Anda akan hangus dan musnah selamanya.
-- **⚡ Kuota Energi (Token):** Terdapat bar Energi untuk memantau sisa kuota Anda secara langsung. Pengunjung tamu mendapat 1.000 token, sedangkan yang sudah login mendapat 5.000 token (di-reset setiap 3 jam).
+- **⚡ Kuota Energi (Token):** Terdapat bar Energi untuk memantau sisa kuota Anda secara langsung. Pengunjung tamu mendapat 10.000 token, sedangkan yang sudah login mendapat 50.000 token (di-reset setiap 3 jam).
 - **📌 Paku Obrolan Penting (Pin):** Punya obrolan yang sangat penting? Anda bisa "memaku" maksimal 5 obrolan agar selalu berada di posisi paling atas dan tidak tenggelam.
 - **💻 Tampilan Kode & Rumus Mewah:** Jika Anda menyuruhnya membuat kode komputer atau rumus Matematika, ia akan menampilkannya di dalam kotak warna-warni cantik atau format LaTeX yang rapi, lengkap dengan tombol "Salin" sekali klik!
 

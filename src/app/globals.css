@@ -68,11 +68,11 @@
 }
 
 .chat-bubble-user {
-  @apply bg-gradient-to-br from-primary to-blue-600 text-primary-foreground rounded-[1.5rem] rounded-tr-md px-5 py-3.5 shadow-md shadow-primary/20 border border-primary/20;
+  @apply bg-transparent text-foreground px-2 py-4;
 }
 
 .chat-bubble-ai {
-  @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-md text-foreground rounded-[1.5rem] rounded-tl-md px-5 py-3.5 shadow-sm border border-white/40 dark:border-slate-700/50;
+  @apply bg-transparent text-foreground px-2 py-4;
 }
 
 /* Glassmorphism utilities */

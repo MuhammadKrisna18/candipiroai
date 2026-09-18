@@ -39,6 +39,21 @@ export function ChatInterface() {
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
+  const [quota, setQuota] = useState<{ percentage: number; used: number; max: number } | null>(null);
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+    
+    let url = "/api/quota";
+    if (user.isLoggedIn && user.user?.uid) {
+      url += `?uid=${user.user.uid}`;
+    }
+    
+    fetch(url)
+      .then(res => res.json())
+      .then(data => setQuota(data))
+      .catch(console.error);
+  }, [user.isLoggedIn, user.user?.uid, isAuthLoading]);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -256,11 +271,18 @@ export function ChatInterface() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: messagesToSend }),
+        body: JSON.stringify({ 
+          messages: messagesToSend,
+          uid: user.isLoggedIn ? user.user?.uid : undefined
+        }),
       });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Request failed");
+
+      if (data.quota) {
+        setQuota(data.quota);
+      }
 
       const aiMessage: ChatMessage = {
         id: crypto.randomUUID(),
@@ -363,45 +385,62 @@ export function ChatInterface() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            {user.isLoggedIn ? (
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:block text-right">
-                  <p
-                    className="text-xs font-semibold cursor-pointer hover:underline"
-                    onClick={() => {
-                      setEditedName(user.user?.name || "");
-                      setIsEditingName(true);
-                    }}
-                    title="Klik untuk mengubah nama"
-                  >
-                    {user.user?.name}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {user.user?.email}
-                  </p>
+          <div className="flex items-center gap-4">
+            {quota && (
+              <div className="hidden sm:flex flex-col items-end">
+                <div className="flex items-center justify-between w-24 mb-1">
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest">Energi</span>
+                  <span className="text-[10px] font-bold text-primary">{Math.round(quota.percentage)}%</span>
                 </div>
-                <Avatar className="w-8 h-8 border">
-                  <AvatarImage src={user.user?.avatar} />
-                  <AvatarFallback>
-                    <User />
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleLogout}
-                  title="Keluar"
-                >
-                  <LogOut className="w-4 h-4 text-muted-foreground" />
-                </Button>
+                <div className="h-1.5 w-24 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                  <div 
+                    className={`h-full transition-all duration-1000 ease-out rounded-full ${quota.percentage < 20 ? 'bg-destructive' : 'bg-gradient-to-r from-primary to-accent'}`}
+                    style={{ width: `${quota.percentage}%` }}
+                  />
+                </div>
               </div>
-            ) : (
-              <Button size="sm" onClick={handleLogin} className="flex gap-2">
-                <LogIn className="w-4 h-4" />
-                Masuk
-              </Button>
             )}
+
+            <div className="flex items-center gap-2">
+              {user.isLoggedIn ? (
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:block text-right">
+                    <p
+                      className="text-xs font-semibold cursor-pointer hover:underline"
+                      onClick={() => {
+                        setEditedName(user.user?.name || "");
+                        setIsEditingName(true);
+                      }}
+                      title="Klik untuk mengubah nama"
+                    >
+                      {user.user?.name}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {user.user?.email}
+                    </p>
+                  </div>
+                  <Avatar className="w-8 h-8 border">
+                    <AvatarImage src={user.user?.avatar} />
+                    <AvatarFallback>
+                      <User />
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleLogout}
+                    title="Keluar"
+                  >
+                    <LogOut className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" onClick={handleLogin} className="flex gap-2">
+                  <LogIn className="w-4 h-4" />
+                  Masuk
+                </Button>
+              )}
+            </div>
           </div>
         </header>
 
@@ -481,9 +520,9 @@ export function ChatInterface() {
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="p-4 md:p-6 relative z-10 bg-gradient-to-t from-background via-background/80 to-transparent">
+        <div className="p-4 md:p-6 relative z-10">
           <div className="max-w-3xl mx-auto">
-            <div className="relative glass-panel rounded-full overflow-hidden focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300 shadow-xl shadow-primary/5 flex items-end p-2 border-white/60 dark:border-slate-700/50">
+            <div className="relative bg-transparent border border-border/80 dark:border-slate-800 rounded-full overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all duration-300 shadow-sm focus-within:shadow-md flex items-end p-2 backdrop-blur-md">
               <Textarea
                 ref={textareaRef}
                 placeholder="Ketik pertanyaan Anda..."

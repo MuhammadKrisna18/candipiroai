@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/openai";
+import { getQuota, updateQuota, MAX_TOKENS_LOGGED_IN, MAX_TOKENS_ANONYMOUS } from "@/lib/quota";
 
 // 🔁 Retry function
 async function callOpenAI(messages: any[], retries = 3) {
@@ -10,7 +11,10 @@ async function callOpenAI(messages: any[], retries = 3) {
         messages: messages,
         response_format: { type: "json_object" },
       });
-      return response.choices[0]?.message?.content || "";
+      return {
+        text: response.choices[0]?.message?.content || "",
+        usage: response.usage?.total_tokens || 0
+      };
     } catch (err) {
       console.log("Retry:", i + 1, err);
 
@@ -19,13 +23,30 @@ async function callOpenAI(messages: any[], retries = 3) {
       await new Promise((res) => setTimeout(res, 1000 * (i + 1)));
     }
   }
+  return { text: "", usage: 0 };
 }
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     let messages = body.messages;
+    const uid = body.uid;
 
+    // 1. Quota Check
+    const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
+    const id = uid ? `uid_${uid}` : `ip_${ip}`;
+    const maxTokens = uid ? MAX_TOKENS_LOGGED_IN : MAX_TOKENS_ANONYMOUS;
+    
+    const quota = getQuota(id);
+    
+    if (quota.usedTokens >= maxTokens) {
+      return NextResponse.json(
+        { error: "Batas token (energi) Anda sudah habis. Silakan tunggu hingga reset atau login untuk kuota lebih banyak." },
+        { status: 429 }
+      );
+    }
+
+    // 2. Input Validation (Empty Check)
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       if (body.question && typeof body.question === "string") {
         messages = [{ role: "user", content: body.question }];
@@ -37,7 +58,22 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    let text = await callOpenAI([
+    // 3. Token Budget Control (Limit History Length)
+    // Keep only the last 10 messages to prevent huge token usage
+    if (messages.length > 10) {
+      messages = messages.slice(-10);
+    }
+
+    // 4. Message Length Validation (Truncate overly long messages)
+    const MAX_LENGTH = 2000;
+    messages = messages.map((m: any) => ({
+      ...m,
+      content: typeof m.content === "string" && m.content.length > MAX_LENGTH 
+        ? m.content.substring(0, MAX_LENGTH) + "... [terpotong]" 
+        : m.content
+    }));
+
+    let result = await callOpenAI([
       {
         role: "system",
         content: `You are a highly intelligent, multilingual AI assistant.
@@ -65,7 +101,7 @@ FORMATTING RULES FOR "answer":
       })),
     ]);
 
-    text = text.trim();
+    let text = result.text.trim();
 
     let parsed;
 
@@ -87,10 +123,17 @@ FORMATTING RULES FOR "answer":
       parsed.answer = JSON.stringify(parsed.answer, null, 2);
     }
 
+    const newQuota = updateQuota(id, result.usage);
+
     return NextResponse.json({
       detectedLanguage: parsed.detectedLanguage || "Unknown",
       detectedTopic: parsed.detectedTopic || "General Knowledge",
       answer: parsed.answer,
+      quota: {
+        used: newQuota.usedTokens,
+        max: maxTokens,
+        percentage: Math.max(0, 100 - (newQuota.usedTokens / maxTokens * 100))
+      }
     });
   } catch (error: any) {
     console.error("🔥 API ERROR:", error);

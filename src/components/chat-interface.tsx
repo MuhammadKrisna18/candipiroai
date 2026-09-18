@@ -481,12 +481,12 @@ export function ChatInterface() {
         </ScrollArea>
 
         {/* Input Area */}
-        <div className="p-4 md:p-8 pt-0 pb-8 relative z-10">
-          <div className="max-w-6xl mx-auto">
-            <div className="relative glass-panel rounded-3xl overflow-hidden focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
+        <div className="p-4 md:p-6 relative z-10 bg-gradient-to-t from-background via-background/80 to-transparent">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative glass-panel rounded-full overflow-hidden focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300 shadow-xl shadow-primary/5 flex items-end p-2 border-white/60 dark:border-slate-700/50">
               <Textarea
                 ref={textareaRef}
-                placeholder="Ketik pertanyaan Anda di sini... (Bahasa Indonesia atau Inggris)"
+                placeholder="Ketik pertanyaan Anda..."
                 value={input}
                 onChange={handleInput}
                 onKeyDown={(e) => {
@@ -495,20 +495,17 @@ export function ChatInterface() {
                     handleSendMessage();
                   }
                 }}
-                className="w-full min-h-[60px] max-h-48 border-0 focus-visible:ring-0 resize-none py-4 px-6 text-base leading-relaxed"
+                className="w-full min-h-[44px] max-h-32 border-0 focus-visible:ring-0 resize-none py-3 px-4 text-sm md:text-base leading-relaxed bg-transparent"
+                rows={1}
               />
-              <div className="flex items-center justify-between px-6 py-3 border-t border-white/20 dark:border-slate-800/50 bg-white/30 dark:bg-slate-900/30">
-                <div className="flex gap-1 text-[10px] text-muted-foreground items-center font-medium">
-                  <ShieldCheck className="w-3 h-3 text-accent" />
-                  CandipiroAI
-                </div>
+              <div className="flex items-center gap-2 pr-2 pb-1 shrink-0">
                 <Button
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLoading}
-                  className="rounded-full px-6 py-5 font-semibold transition-all bg-gradient-to-br from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/30"
+                  size="icon"
+                  className="rounded-full w-10 h-10 transition-all bg-gradient-to-br from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/30"
                 >
-                  {isLoading ? "Memikirkan..." : "Kirim"}
-                  {!isLoading && <Send className="w-4 h-4 ml-2" />}
+                  <Send className="w-4 h-4" />
                 </Button>
               </div>
             </div>

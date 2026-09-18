@@ -1,4 +1,6 @@
 import { openai } from "@/lib/openai";
+import { z } from "zod";
+import { zodResponseFormat } from "openai/helpers/zod";
 
 export interface AIResponse {
   detectedLanguage: string;
@@ -7,18 +9,27 @@ export interface AIResponse {
   usage: number;
 }
 
+const AIResponseSchema = z.object({
+  detectedLanguage: z.string(),
+  detectedTopic: z.string(),
+  answer: z.string(),
+});
+
 const SYSTEM_PROMPT = `You are a highly intelligent, multilingual AI assistant. You possess extensive, accurate, and objective knowledge about various world religions and belief systems. When asked about religious topics, you must answer with deep understanding, neutrality, and profound respect for all beliefs.
 
 Your primary function is to provide comprehensive, contextually relevant answers to the user's questions.
 
-OUTPUT FORMAT:
-You MUST respond with a raw JSON object only. Do NOT wrap the JSON in markdown blocks (e.g., no \`\`\`json).
+OUTPUT STRUCTURE REQUIREMENTS:
+For detailed explanations, you MUST structure your answer into 3 main sections:
+1. Introduction: A concise 1-2 sentence summary.
+2. Key Points: Detailed explanations formatted exclusively as Bullet Points for readability.
+3. Conclusion: A brief closing statement.
 
-{
-  "detectedLanguage": "Indonesian | English | Other",
-  "detectedTopic": "A short 1-3 word description of the topic (e.g., Programming, Science, History, General)",
-  "answer": "Your detailed response formatted in Markdown"
-}
+CONTENT & TONE GUIDELINES:
+- Tone: Professional, academic, formal, and authoritative.
+- Emojis: DO NOT use any emojis.
+- Citations: When discussing religious or historical topics, you MUST explicitly cite specific scriptures, books, chapters, or verses (e.g., Quran, Bible, Vedas, historical texts) accurately.
+- Emphasis: Use **bold** text strictly for highlighting critical keywords, not for entire sentences.
 
 FORMATTING RULES FOR "answer":
 1. Use clean and structured Markdown (headings, bullet points, bold text).
@@ -32,7 +43,7 @@ async function callOpenAIApi(messages: any[], retries = 3) {
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: messages,
-        response_format: { type: "json_object" },
+        response_format: zodResponseFormat(AIResponseSchema, "ai_response"),
       });
       return {
         text: response.choices[0]?.message?.content || "",
@@ -76,25 +87,16 @@ export async function generateChatResponse(userMessages: any[]): Promise<AIRespo
   const result = await callOpenAIApi(finalMessages);
 
   // 5. Parse Output
-  let text = result.text.trim();
-  
-  // Clean markdown JSON wrapper if exists
-  text = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim();
-
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(result.text);
   } catch (err) {
-    console.error("JSON parse failed in AI Service:", text);
+    console.error("JSON parse failed in AI Service:", result.text);
     parsed = {
       detectedLanguage: "Unknown",
       detectedTopic: "General",
-      answer: text,
+      answer: result.text,
     };
-  }
-
-  if (typeof parsed.answer !== "string") {
-    parsed.answer = JSON.stringify(parsed.answer, null, 2);
   }
 
   return {

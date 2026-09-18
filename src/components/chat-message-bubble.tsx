@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import ReactMarkdown from "react-markdown"; // ✅ HARUS DI ATAS
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { cn } from "@/lib/utils";
@@ -78,7 +79,7 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           {/* ✅ MARKDOWN RENDER */}
           <div className="prose prose-sm md:prose-base max-w-none dark:prose-invert">
             <ReactMarkdown
-              remarkPlugins={[remarkMath]}
+              remarkPlugins={[remarkMath, remarkGfm]}
               rehypePlugins={[rehypeKatex]}
               components={{
                 code: CodeBlock as any

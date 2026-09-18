@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const uid = body.uid;
 
     // 1. Quota Check
-    const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
     const id = uid ? `uid_${uid}` : `ip_${ip}`;
     const maxTokens = uid ? MAX_TOKENS_LOGGED_IN : MAX_TOKENS_ANONYMOUS;
     

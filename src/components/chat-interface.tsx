@@ -41,6 +41,7 @@ export function ChatInterface() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState("");
@@ -66,6 +67,7 @@ export function ChatInterface() {
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
+    const isFirstMessage = activeMessages.length === 0;
     let sessionId = currentSessionId;
     let targetSession = sessions.find((s) => s.id === sessionId);
     
@@ -140,6 +142,7 @@ export function ChatInterface() {
         ...sessionWithUserMsg,
         messages: user.isLoggedIn ? undefined : [...activeMessages, userMessage, aiMessage],
         lastUpdated: Date.now(),
+        ...(isFirstMessage && data.suggestedTitle ? { title: data.suggestedTitle } : {})
       };
       
       await saveSession(finalSession);
@@ -173,16 +176,18 @@ export function ChatInterface() {
   return (
     <div className="flex h-[100dvh] w-full overflow-hidden bg-background font-body">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block w-80 shrink-0">
-        <ChatHistory
-          sessions={sessions}
-          currentSessionId={currentSessionId}
-          onSelectSession={setCurrentSessionId}
-          onNewChat={handleNewChat}
-          onDeleteSession={handleDeleteSession}
-          onTogglePin={handleTogglePin}
-        />
-      </div>
+      {isDesktopSidebarOpen && (
+        <div className="hidden md:block w-80 shrink-0 border-r border-border/10 transition-all duration-300 ease-in-out">
+          <ChatHistory
+            sessions={sessions}
+            currentSessionId={currentSessionId}
+            onSelectSession={setCurrentSessionId}
+            onNewChat={handleNewChat}
+            onDeleteSession={handleDeleteSession}
+            onTogglePin={handleTogglePin}
+          />
+        </div>
+      )}
 
       {/* Main Chat Content */}
       <div className="flex-1 flex flex-col min-w-0">
@@ -191,6 +196,8 @@ export function ChatInterface() {
           quota={quota}
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}
+          isDesktopSidebarOpen={isDesktopSidebarOpen}
+          setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
           sessions={sessions}
           currentSessionId={currentSessionId}
           setCurrentSessionId={setCurrentSessionId}

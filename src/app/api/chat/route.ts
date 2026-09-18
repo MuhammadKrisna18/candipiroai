@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       detectedLanguage: aiResult.detectedLanguage,
       detectedTopic: aiResult.detectedTopic,
+      suggestedTitle: aiResult.suggestedTitle,
       answer: aiResult.answer,
       quota: {
         used: newQuota.usedTokens,

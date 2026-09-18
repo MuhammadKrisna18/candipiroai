@@ -3,7 +3,7 @@ import "./globals.css";
 import "katex/dist/katex.min.css";
 
 export const metadata: Metadata = {
-  title: "CandipiroAI - Bilingual General AI Assistant",
+  title: "Candipuro AI - Bilingual General AI Assistant",
   description:
     "An intelligent bilingual chatbot for programming, science, history, creative writing, and all your general knowledge questions.",
 };

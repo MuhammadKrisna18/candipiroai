@@ -5,6 +5,7 @@ import { zodResponseFormat } from "openai/helpers/zod";
 export interface AIResponse {
   detectedLanguage: string;
   detectedTopic: string;
+  suggestedTitle: string;
   answer: string;
   usage: number;
 }
@@ -12,6 +13,7 @@ export interface AIResponse {
 const AIResponseSchema = z.object({
   detectedLanguage: z.string(),
   detectedTopic: z.string(),
+  suggestedTitle: z.string().describe("A short, 3-5 word title summarizing the user's question or the conversation topic."),
   answer: z.string(),
 });
 
@@ -95,6 +97,7 @@ export async function generateChatResponse(userMessages: any[]): Promise<AIRespo
     parsed = {
       detectedLanguage: "Unknown",
       detectedTopic: "General",
+      suggestedTitle: "New Conversation",
       answer: result.text,
     };
   }
@@ -102,6 +105,7 @@ export async function generateChatResponse(userMessages: any[]): Promise<AIRespo
   return {
     detectedLanguage: parsed.detectedLanguage || "Unknown",
     detectedTopic: parsed.detectedTopic || "General Knowledge",
+    suggestedTitle: parsed.suggestedTitle || "New Conversation",
     answer: parsed.answer,
     usage: result.usage,
   };

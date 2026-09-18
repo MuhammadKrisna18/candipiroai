@@ -99,6 +99,13 @@ export function useChatSessions(user: UserSession, isAuthLoading: boolean) {
     await saveSession(updatedSession);
   };
 
+  const updateSessionTitle = async (sessionId: string, newTitle: string) => {
+    const session = sessions.find((s) => s.id === sessionId);
+    if (!session) return;
+    const updatedSession = { ...session, title: newTitle };
+    await saveSession(updatedSession);
+  };
+
   const handleNewChat = () => {
     const newSessionId = crypto.randomUUID();
     const newSession: ChatSession = {
@@ -120,6 +127,7 @@ export function useChatSessions(user: UserSession, isAuthLoading: boolean) {
     setCurrentSessionId,
     isInitialized,
     saveSession,
+    updateSessionTitle,
     handleDeleteSession,
     handleTogglePin,
     handleNewChat

@@ -1,7 +1,7 @@
-# CandipiroAI
+# Candipuro AI
 
 ## Deskripsi Singkat
-CandipiroAI adalah asisten kecerdasan buatan berbasis web yang dirancang untuk menyediakan informasi komprehensif secara akurat dan objektif. Sistem ini mampu menangani berbagai topik, mulai dari akademis, ilmu pengetahuan, hingga pemrograman, dengan antarmuka yang modern dan responsif.
+Candipuro AI adalah asisten kecerdasan buatan berbasis web yang dirancang untuk menyediakan informasi komprehensif secara akurat dan objektif. Sistem ini mampu menangani berbagai topik, mulai dari akademis, ilmu pengetahuan, hingga pemrograman, dengan antarmuka yang modern dan responsif.
 
 ## Fitur Utama
 
@@ -25,22 +25,24 @@ Sistem ini dikembangkan dengan susunan teknologi (Tech Stack) modern untuk menja
 
 ## Panduan Instalasi dan Pengembangan
 
-Ikuti langkah-langkah berikut untuk menjalankan CandipiroAI di lingkungan pengembangan lokal Anda:
+Ikuti langkah-langkah berikut untuk menjalankan Candipuro AI di lingkungan pengembangan lokal Anda:
 
 1. Kloning repositori ini ke penyimpanan lokal Anda.
 2. Buka terminal pada direktori proyek, lalu jalankan perintah instalasi pustaka dependensi:
    ```bash
    npm install
    ```
-3. Buat sebuah berkas bernama `.env.local` pada direktori utama proyek, lalu konfigurasi kredensial API Anda:
+3. Proyek ini menyertakan berkas `.env.example`. Gandakan (copy) berkas tersebut dan ubah namanya menjadi `.env.local`, lalu isi dengan kredensial API Anda:
+   ```bash
+   cp .env.example .env.local
+   ```
+   *Penting: Jaga kerahasiaan berkas `.env.local` Anda. Jangan pernah mengunggah atau membagikan `OPENAI_API_KEY` Anda ke publik.*
+
+4. Konfigurasi kredensial pada `.env.local`:
    ```env
-   OPENAI_API_KEY="kunci_rahasia_openai_anda"
-   NEXT_PUBLIC_FIREBASE_API_KEY="kunci_rahasia_firebase_anda"
-   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="domain_firebase_anda"
-   NEXT_PUBLIC_FIREBASE_PROJECT_ID="id_proyek_firebase_anda"
-   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="bucket_firebase_anda"
-   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="sender_id_firebase_anda"
-   NEXT_PUBLIC_FIREBASE_APP_ID="app_id_firebase_anda"
+   OPENAI_API_KEY="sk-proj-..."
+   NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSy..."
+   ...
    ```
 4. Mulai server pengembangan lokal:
    ```bash

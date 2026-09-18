@@ -160,7 +160,7 @@ export function AuthDialog({ isOpen, onOpenChange }: AuthDialogProps) {
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">
-            CandipiroAI
+            Candipuro AI
           </DialogTitle>
           <DialogDescription className="text-center">
             Log in to save your conversation history

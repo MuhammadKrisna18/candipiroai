@@ -105,9 +105,9 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
               <Badge
                 variant="outline"
                 className={cn(
-                  "text-[10px] py-0 px-1.5 font-medium flex gap-1 items-center border-accent text-accent-foreground",
+                  "text-[10px] py-0 px-1.5 font-medium flex gap-1 items-center border-primary/40 text-primary dark:text-primary-foreground",
                   message.detectedTopic.toLowerCase() === "programming" &&
-                    "bg-accent/10 border-accent",
+                    "bg-primary/10 border-primary",
                 )}
               >
                 {message.detectedTopic.toLowerCase() === "programming" ? (

@@ -58,7 +58,7 @@ export function ChatInput({ input, setInput, isLoading, handleSendMessage }: Cha
           </div>
         </div>
         <p className="text-center text-[10px] text-muted-foreground mt-3 uppercase tracking-widest font-semibold opacity-60">
-          Powered by CandipiroAI
+          Powered by Candipuro AI
         </p>
       </div>
     </div>

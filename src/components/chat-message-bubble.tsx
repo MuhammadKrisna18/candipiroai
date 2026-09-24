@@ -59,8 +59,37 @@ const CodeBlock = ({ node, inline, className, children, ...props }: any) => {
   );
 };
 
+function preprocessLaTeX(content: string): string {
+  if (!content) return "";
+  // 1. Repair control characters corrupted by JSON parser (\x0C for \frac, \x08 for \beta, \r for \rho, etc.)
+  let processed = content
+    .replace(/\x0C([a-zA-Z]+)/g, "\\f$1")
+    .replace(/\x08([a-zA-Z]+)/g, "\\b$1")
+    .replace(/\r(?!\n)([a-zA-Z]+)/g, "\\r$1")
+    .replace(/\t(imes|heta|au|ext|o\b|an\b|riangle|ilde|frac)/g, "\\t$1");
+
+  // 2. Ensure headings (###, ##) attached after sentences have newlines
+  processed = processed.replace(/([.!?])\s+(#{1,6}\s+)/g, "$1\n\n$2");
+
+  // 3. Convert \[ ... \] block math to $$ ... $$
+  processed = processed.replace(/\\\[([\s\S]*?)\\\]/g, (_, eq) => `\n$$\n${eq.trim()}\n$$\n`);
+  
+  // 4. Convert \( ... \) inline math to $ ... $
+  processed = processed.replace(/\\\(([\s\S]*?)\\\)/g, (_, eq) => `$${eq.trim()}$`);
+  
+  return processed;
+}
+
 export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
   const isUser = message.role === "user";
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopyMessage = () => {
+    if (!message.content) return;
+    navigator.clipboard.writeText(message.content);
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  };
 
   return (
     <div
@@ -80,18 +109,20 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
           <div className="prose prose-sm md:prose-base max-w-none dark:prose-invert">
             <ReactMarkdown
               remarkPlugins={[remarkMath, remarkGfm]}
-              rehypePlugins={[rehypeKatex]}
+              rehypePlugins={[
+                [rehypeKatex as any, { strict: false, throwOnError: false, errorColor: 'currentColor' }]
+              ]}
               components={{
                 code: CodeBlock as any
               }}
             >
-              {message.content}
+              {preprocessLaTeX(message.content)}
             </ReactMarkdown>
           </div>
         </div>
 
-        {!isUser && (message.detectedLanguage || message.detectedTopic) && (
-          <div className="flex flex-wrap gap-2 mt-2">
+        {!isUser && (
+          <div className="flex flex-wrap items-center gap-2 mt-2 w-full">
             {message.detectedLanguage && (
               <Badge
                 variant="secondary"
@@ -118,6 +149,25 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
                 {message.detectedTopic}
               </Badge>
             )}
+
+            {/* Tombol Salin per Jawaban */}
+            <button
+              onClick={handleCopyMessage}
+              className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1.5 px-2 py-0.5 rounded-md hover:bg-muted/80 transition-colors ml-auto group"
+              title="Salin seluruh isi jawaban"
+            >
+              {isCopied ? (
+                <>
+                  <Check className="w-3 h-3 text-green-500" />
+                  <span className="text-green-600 dark:text-green-400 font-medium">Tersalin!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3 h-3 text-muted-foreground group-hover:text-foreground transition-colors" />
+                  <span>Salin Jawaban</span>
+                </>
+              )}
+            </button>
           </div>
         )}
       </div>

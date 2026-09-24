@@ -51,7 +51,38 @@ STRUCTURE & FORMATTING GUIDELINES:
 4. Markdown & Syntax:
    - Use bold text for emphasizing key terms or concepts.
    - Code blocks MUST specify the programming language (e.g., \`\`\`python, \`\`\`typescript).
-   - Mathematical expressions MUST be written in valid LaTeX (inline: $...$, block: $$...$$).`;
+   - Headings (##, ###) MUST always be on their own separate lines preceded by double newlines (\\n\\n). NEVER attach headings to the end of a paragraph sentence.
+5. Mathematical & Scientific Formulas (Rigorous Accuracy):
+   - Theoretical correctness: State formulas accurately with standard scientific/mathematical notation, define every variable and unit of measurement clearly.
+   - ALL variables and equations (including in bullet points, variable lists, and text explanations) MUST be wrapped in LaTeX:
+     * NEVER write plain text representations like F_d, C_d, p, or F_{net} = ma.
+     * ALWAYS write them in LaTeX: $F_d$, $C_d$, $\\rho$ (use Greek letter $\\rho$, NOT Latin 'p' for density), and $F_{\\text{net}} = ma$.
+   - Calculations & Derivations: For numerical problems, always show step-by-step working (step-by-step calculation) and verify arithmetic before presenting the final answer to ensure precision.
+   - LaTeX Delimiters: All mathematical expressions MUST be written in clean LaTeX:
+     * Inline math: use single dollar signs without spaces after or before the dollar sign (e.g., $E = mc^2$).
+     * Block / standalone equations: put on their own separate lines using double dollar signs (e.g., $$\\nx = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}\\n$$).
+     * Do NOT use \\[ \\] or \\( \\) delimiters; strictly use $ and $$.
+6. JSON & LaTeX Backslash Escaping:
+   - When writing LaTeX expressions inside this JSON output, you MUST escape every LaTeX backslash as a double backslash (e.g., \\\\frac, \\\\rho, \\\\times, \\\\theta, \\\\beta, \\\\partial, \\\\cdot, \\\\sqrt, etc.). NEVER write an unescaped single backslash like \\frac or \\rho, as standard JSON parsers will corrupt them into control characters like form feed or carriage return.
+7. Dynamic Metadata Header:
+   - At the very beginning of your response, on the first line, output a single metadata tag in this exact format:
+     <!--METADATA: {"language": "<2_letter_language_code>", "topic": "<specific_topic_name>", "title": "<short_3_to_5_word_title>"}-->
+     Followed immediately by a double newline, then begin your formatted answer.
+   - The topic MUST be specific, concise, and accurately identify the subject (e.g., "Fisika", "Kimia", "Teknik Mesin", "Teknik Elektro", "Hukum", "Kedokteran", "Ekonomi", "Sejarah", "Filsafat", "Psikologi", "Pemrograman", "Kreatif", "Astronomi", "Sains", dll.).
+   - The title MUST be a short, crisp 3-5 word summary of the user's question.`;
+
+function repairLaTeXControlChars(text: string): string {
+  if (!text) return "";
+  return text
+    // repair \frac, \flat, etc. (Form Feed \x0C)
+    .replace(/\x0C([a-zA-Z]+)/g, "\\f$1")
+    // repair \beta, \bar, \begin, etc. (Backspace \x08)
+    .replace(/\x08([a-zA-Z]+)/g, "\\b$1")
+    // repair \rho, \right, etc. (Carriage Return \r not part of \r\n)
+    .replace(/\r(?!\n)([a-zA-Z]+)/g, "\\r$1")
+    // repair \times, \theta, \tau, \text, \to, \tan, etc. (Tab \t)
+    .replace(/\t(imes|heta|au|ext|o\b|an\b|riangle|ilde|frac)/g, "\\t$1");
+}
 
 async function callOpenAIApi(messages: any[], retries = 3) {
   for (let i = 0; i < retries; i++) {
@@ -74,14 +105,12 @@ async function callOpenAIApi(messages: any[], retries = 3) {
   return { text: "", usage: 0 };
 }
 
-export async function generateChatResponse(userMessages: any[]): Promise<AIResponse> {
-  // 1. Token Budget Control (Limit History Length)
+export function prepareMessages(userMessages: any[]) {
   let messages = [...userMessages];
   if (messages.length > 10) {
     messages = messages.slice(-10);
   }
 
-  // 2. Message Length Validation (Truncate overly long messages)
   const MAX_LENGTH = 2000;
   messages = messages.map((m: any) => ({
     ...m,
@@ -90,19 +119,32 @@ export async function generateChatResponse(userMessages: any[]): Promise<AIRespo
       : m.content
   }));
 
-  // 3. Assemble Final Messages
-  const finalMessages = [
+  return [
     { role: "system", content: SYSTEM_PROMPT },
     ...messages.map((m: any) => ({
       role: m.role || "user",
       content: m.content || "",
     }))
   ];
+}
 
-  // 4. Call API
+export async function generateChatStream(userMessages: any[]) {
+  const finalMessages = prepareMessages(userMessages);
+  return openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: finalMessages,
+    stream: true,
+    stream_options: { include_usage: true },
+  });
+}
+
+export async function generateChatResponse(userMessages: any[]): Promise<AIResponse> {
+  const finalMessages = prepareMessages(userMessages);
+
+  // Call API
   const result = await callOpenAIApi(finalMessages);
 
-  // 5. Parse Output
+  // Parse Output
   let parsed;
   try {
     parsed = JSON.parse(result.text);
@@ -120,7 +162,7 @@ export async function generateChatResponse(userMessages: any[]): Promise<AIRespo
     detectedLanguage: parsed.detectedLanguage || "Unknown",
     detectedTopic: parsed.detectedTopic || "General Knowledge",
     suggestedTitle: parsed.suggestedTitle || "New Conversation",
-    answer: parsed.answer,
+    answer: repairLaTeXControlChars(parsed.answer || ""),
     usage: result.usage,
   };
 }

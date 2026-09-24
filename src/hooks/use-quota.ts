@@ -30,5 +30,21 @@ export function useQuota(user: UserSession, isAuthLoading: boolean) {
     fetchQuota();
   }, [user.isLoggedIn, user.user?.uid, isAuthLoading]);
 
+  // Auto-refresh quota when resetTime arrives
+  useEffect(() => {
+    if (!quota?.resetTime) return;
+    const remainingMs = quota.resetTime - Date.now();
+    if (remainingMs <= 0) {
+      if (quota.used > 0) {
+        fetchQuota();
+      }
+      return;
+    }
+    const timer = setTimeout(() => {
+      fetchQuota();
+    }, remainingMs + 1000);
+    return () => clearTimeout(timer);
+  }, [quota?.resetTime, quota?.used]);
+
   return { quota, setQuota, fetchQuota };
 }

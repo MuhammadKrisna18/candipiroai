@@ -40,6 +40,7 @@ export function ChatInterface() {
 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [streamingText, setStreamingText] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
@@ -57,7 +58,7 @@ export function ChatInterface() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [activeMessages, currentSessionId]);
+  }, [activeMessages, currentSessionId, streamingText]);
 
   const onSaveName = async () => {
     const success = await handleSaveName(editedName);
@@ -106,6 +107,7 @@ export function ChatInterface() {
     
     setInput("");
     setIsLoading(true);
+    setStreamingText("");
 
     const messagesToSend = [...activeMessages, userMessage].map((msg) => ({
       role: msg.role === "ai" ? "assistant" : msg.role,
@@ -122,27 +124,75 @@ export function ChatInterface() {
         }),
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Request failed");
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.quota) {
+          setQuota(errorData.quota);
+        }
+        throw new Error(errorData.error || "Maaf, terjadi kendala saat memproses permintaan.");
+      }
 
-      if (data.quota) {
-        setQuota(data.quota);
+      const contentType = response.headers.get("content-type") || "";
+      let fullAnswer = "";
+      let metadata: any = {};
+
+      if (contentType.includes("text/event-stream") && response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n\n");
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (trimmed.startsWith("data: ")) {
+              try {
+                const payload = JSON.parse(trimmed.slice(6));
+                if (payload.type === "chunk" && payload.text) {
+                  fullAnswer += payload.text;
+                  setStreamingText(fullAnswer);
+                  setIsLoading(false);
+                } else if (payload.type === "done") {
+                  metadata = payload;
+                  if (payload.quota) {
+                    setQuota(payload.quota);
+                  }
+                } else if (payload.type === "error") {
+                  throw new Error(payload.error || "Terjadi kendala saat streaming.");
+                }
+              } catch (parseErr: any) {
+                // Ignore partial JSON parse chunks
+              }
+            }
+          }
+        }
+      } else {
+        const data = await response.json();
+        if (data.quota) setQuota(data.quota);
+        fullAnswer = data.answer || "";
+        metadata = data;
       }
 
       const aiMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "ai",
-        content: data.answer,
+        content: fullAnswer,
         timestamp: Date.now(),
-        detectedLanguage: data.detectedLanguage,
-        detectedTopic: data.detectedTopic,
+        detectedLanguage: metadata.detectedLanguage,
+        detectedTopic: metadata.detectedTopic,
       };
 
       const finalSession = {
         ...sessionWithUserMsg,
         messages: user.isLoggedIn ? undefined : [...activeMessages, userMessage, aiMessage],
         lastUpdated: Date.now(),
-        ...(isFirstMessage && data.suggestedTitle ? { title: data.suggestedTitle } : {})
+        ...(isFirstMessage && metadata.suggestedTitle ? { title: metadata.suggestedTitle } : {})
       };
       
       await saveSession(finalSession);
@@ -150,12 +200,12 @@ export function ChatInterface() {
         await saveMessage(sessionId, aiMessage);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to get AI response:", error);
       const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "ai",
-        content: "Sorry, I encountered an error. Please try again later.",
+        content: error?.message || "Maaf, terjadi kesalahan saat menghubungi server. Silakan coba beberapa saat lagi.",
         timestamp: Date.now(),
       };
       
@@ -170,6 +220,7 @@ export function ChatInterface() {
       }
     } finally {
       setIsLoading(false);
+      setStreamingText(null);
     }
   };
 
@@ -231,7 +282,17 @@ export function ChatInterface() {
                 {activeMessages.map((msg) => (
                   <ChatMessageBubble key={msg.id} message={msg} />
                 ))}
-                {isLoading && (
+                {streamingText !== null && (
+                  <ChatMessageBubble
+                    message={{
+                      id: "streaming-live",
+                      role: "ai",
+                      content: streamingText || "...",
+                      timestamp: Date.now(),
+                    }}
+                  />
+                )}
+                {isLoading && streamingText === null && (
                   <div className="flex w-full mb-6 animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out justify-start">
                     <div className="max-w-[85%] md:max-w-[70%] flex flex-col items-start">
                       <div className="chat-bubble-ai flex items-center gap-1.5 h-10 px-4">
@@ -254,6 +315,9 @@ export function ChatInterface() {
           setInput={setInput}
           isLoading={isLoading}
           handleSendMessage={handleSendMessage}
+          quota={quota}
+          isLoggedIn={user.isLoggedIn}
+          onOpenLogin={() => setIsAuthDialogOpen(true)}
         />
       </div>
       

@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ChatSession } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Clock, Plus, MoreVertical, Pin, PinOff, Trash2 } from "lucide-react";
+import { MessageSquare, Clock, Plus, MoreVertical, Pin, PinOff, Trash2, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -30,9 +30,16 @@ export function ChatHistory({
   onDeleteSession,
   onTogglePin
 }: ChatHistoryProps) {
-  
-  const pinnedSessions = sessions.filter(s => s.isPinned);
-  const recentSessions = sessions.filter(s => !s.isPinned);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredSessions = sessions.filter((s) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true;
+    return (s.title || "").toLowerCase().includes(query);
+  });
+
+  const pinnedSessions = filteredSessions.filter(s => s.isPinned);
+  const recentSessions = filteredSessions.filter(s => !s.isPinned);
 
   const renderSessionList = (list: ChatSession[], label: string) => {
     if (list.length === 0) return null;
@@ -97,7 +104,7 @@ export function ChatHistory({
 
   return (
     <div className="flex flex-col h-full bg-white/40 dark:bg-slate-950/40 backdrop-blur-md border-r border-white/40 dark:border-slate-800/50">
-      <div className="p-4 border-b border-white/20 dark:border-slate-800/50">
+      <div className="p-4 border-b border-white/20 dark:border-slate-800/50 space-y-3">
         <Button 
           onClick={onNewChat} 
           className="w-full flex gap-2 justify-center items-center font-semibold bg-gradient-to-br from-primary to-blue-600 hover:shadow-lg hover:shadow-primary/30 transition-all rounded-xl py-6"
@@ -105,12 +112,32 @@ export function ChatHistory({
           <Plus className="w-4 h-4" />
           Obrolan Baru
         </Button>
+
+        {/* Kolom Pencarian Riwayat */}
+        <div className="relative">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Cari riwayat obrolan..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-black/5 dark:bg-white/5 border border-border/60 rounded-lg pl-8 pr-8 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/70 focus:outline-none focus:ring-1 focus:ring-primary/40 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
       </div>
       
       <ScrollArea className="flex-1">
-        {sessions.length === 0 ? (
-          <div className="px-3 py-4 text-sm text-muted-foreground italic text-center mt-4">
-            Belum ada riwayat obrolan
+        {filteredSessions.length === 0 ? (
+          <div className="px-3 py-6 text-xs text-muted-foreground italic text-center">
+            {searchQuery ? `Tidak ada obrolan dengan kata kunci "${searchQuery}"` : "Belum ada riwayat obrolan"}
           </div>
         ) : (
           <>

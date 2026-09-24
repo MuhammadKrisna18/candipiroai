@@ -6,7 +6,7 @@ export async function GET(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for") || "unknown";
   
   const id = uid ? `uid_${uid}` : `ip_${ip}`;
-  const maxTokens = id.includes(".") || id.includes(":") ? MAX_TOKENS_ANONYMOUS : MAX_TOKENS_LOGGED_IN;
+  const maxTokens = uid ? MAX_TOKENS_LOGGED_IN : MAX_TOKENS_ANONYMOUS;
   const currentQuota = await getQuota(id);
 
   return NextResponse.json({

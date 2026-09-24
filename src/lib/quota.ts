@@ -1,9 +1,10 @@
 import { db } from "./firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { QUOTA_CONFIG } from "@/config/app.config";
 
-export const MAX_TOKENS_LOGGED_IN = 50000;
-export const MAX_TOKENS_ANONYMOUS = 10000;
-export const RESET_WINDOW_MS = 3 * 60 * 60 * 1000; // 3 hours
+export const MAX_TOKENS_LOGGED_IN = QUOTA_CONFIG.maxTokensLoggedIn;
+export const MAX_TOKENS_ANONYMOUS = QUOTA_CONFIG.maxTokensAnonymous;
+export const RESET_WINDOW_MS = QUOTA_CONFIG.resetWindowMs;
 
 export interface QuotaRecord {
   usedTokens: number;
@@ -16,7 +17,7 @@ export async function getQuota(id: string): Promise<QuotaRecord> {
     return { usedTokens: 0, resetTime: now + RESET_WINDOW_MS };
   }
 
-  const quotaRef = doc(db, "quotas", id);
+  const quotaRef = doc(db, QUOTA_CONFIG.collectionName, id);
   const snap = await getDoc(quotaRef);
   
   if (snap.exists()) {
@@ -39,7 +40,7 @@ export async function updateQuota(id: string, tokensUsed: number): Promise<Quota
   record.usedTokens += tokensUsed;
   
   if (db) {
-    await setDoc(doc(db, "quotas", id), record);
+    await setDoc(doc(db, QUOTA_CONFIG.collectionName, id), record);
   }
   return record;
 }

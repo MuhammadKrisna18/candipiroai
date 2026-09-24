@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Clock, LogIn } from "lucide-react";
 import { QuotaData } from "@/hooks/use-quota";
+import { QUOTA_CONFIG } from "@/config/app.config";
 
 interface ChatInputProps {
   input: string;
@@ -86,7 +87,7 @@ export function ChatInput({
                 onClick={onOpenLogin}
                 className="h-8 text-xs bg-amber-500 hover:bg-amber-600 text-white shrink-0 shadow-sm"
               >
-                <LogIn className="w-3.5 h-3.5 mr-1.5" /> Masuk untuk 50.000 Token
+                <LogIn className="w-3.5 h-3.5 mr-1.5" /> Masuk untuk {QUOTA_CONFIG.maxTokensLoggedIn.toLocaleString('id-ID')} Token
               </Button>
             )}
           </div>

@@ -1,6 +1,7 @@
 import { openai } from "@/lib/openai";
 import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
+import { AI_CONFIG } from "@/config/app.config";
 
 export interface AIResponse {
   detectedLanguage: string;
@@ -84,11 +85,11 @@ function repairLaTeXControlChars(text: string): string {
     .replace(/\t(imes|heta|au|ext|o\b|an\b|riangle|ilde|frac)/g, "\\t$1");
 }
 
-async function callOpenAIApi(messages: any[], retries = 3) {
+async function callOpenAIApi(messages: any[], retries = AI_CONFIG.maxRetries) {
   for (let i = 0; i < retries; i++) {
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: AI_CONFIG.model,
         messages: messages,
         response_format: zodResponseFormat(AIResponseSchema, "ai_response"),
       });
@@ -99,7 +100,7 @@ async function callOpenAIApi(messages: any[], retries = 3) {
     } catch (err) {
       console.log("OpenAI Error Retry:", i + 1, err);
       if (i === retries - 1) throw err;
-      await new Promise((res) => setTimeout(res, 1000 * (i + 1)));
+      await new Promise((res) => setTimeout(res, AI_CONFIG.retryDelayMs * (i + 1)));
     }
   }
   return { text: "", usage: 0 };
@@ -107,15 +108,15 @@ async function callOpenAIApi(messages: any[], retries = 3) {
 
 export function prepareMessages(userMessages: any[]) {
   let messages = [...userMessages];
-  if (messages.length > 10) {
-    messages = messages.slice(-10);
+  if (messages.length > AI_CONFIG.maxHistoryMessages) {
+    messages = messages.slice(-AI_CONFIG.maxHistoryMessages);
   }
 
-  const MAX_LENGTH = 2000;
+  const maxLength = AI_CONFIG.maxMessageLength;
   messages = messages.map((m: any) => ({
     ...m,
-    content: typeof m.content === "string" && m.content.length > MAX_LENGTH 
-      ? m.content.substring(0, MAX_LENGTH) + "... [terpotong]" 
+    content: typeof m.content === "string" && m.content.length > maxLength 
+      ? m.content.substring(0, maxLength) + "... [terpotong]" 
       : m.content
   }));
 
@@ -131,7 +132,7 @@ export function prepareMessages(userMessages: any[]) {
 export async function generateChatStream(userMessages: any[]) {
   const finalMessages = prepareMessages(userMessages);
   return openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: AI_CONFIG.model,
     messages: finalMessages,
     stream: true,
     stream_options: { include_usage: true },
@@ -151,17 +152,17 @@ export async function generateChatResponse(userMessages: any[]): Promise<AIRespo
   } catch (err) {
     console.error("JSON parse failed in AI Service:", result.text);
     parsed = {
-      detectedLanguage: "Unknown",
-      detectedTopic: "General",
-      suggestedTitle: "New Conversation",
+      detectedLanguage: AI_CONFIG.defaultLanguage,
+      detectedTopic: AI_CONFIG.defaultTopic,
+      suggestedTitle: AI_CONFIG.defaultTitle,
       answer: result.text,
     };
   }
 
   return {
-    detectedLanguage: parsed.detectedLanguage || "Unknown",
-    detectedTopic: parsed.detectedTopic || "General Knowledge",
-    suggestedTitle: parsed.suggestedTitle || "New Conversation",
+    detectedLanguage: parsed.detectedLanguage || AI_CONFIG.defaultLanguage,
+    detectedTopic: parsed.detectedTopic || AI_CONFIG.defaultTopic,
+    suggestedTitle: parsed.suggestedTitle || AI_CONFIG.defaultTitle,
     answer: repairLaTeXControlChars(parsed.answer || ""),
     usage: result.usage,
   };

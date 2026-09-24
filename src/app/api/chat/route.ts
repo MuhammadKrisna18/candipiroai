@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getQuota, updateQuota, MAX_TOKENS_LOGGED_IN, MAX_TOKENS_ANONYMOUS } from "@/lib/quota";
 import { generateChatStream } from "@/services/ai.service";
+import { AI_CONFIG, STREAM_CONFIG } from "@/config/app.config";
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +36,7 @@ export async function POST(req: NextRequest) {
 
       const msg = uid 
         ? `Batas energi harian Anda (${maxTokens.toLocaleString('id-ID')} token) telah habis. Energi Anda akan di-reset penuh secara otomatis pada pukul ${timeStr} WIB (${durationStr}). Mohon menunggu hingga waktu reset tiba untuk melanjutkan percakapan.`
-        : `Batas energi gratis tamu (${maxTokens.toLocaleString('id-ID')} token) telah habis. Silakan Masuk (Login) untuk mendapatkan kuota 50.000 token, atau tunggu energi di-reset pada pukul ${timeStr} WIB (${durationStr}).`;
+        : `Batas energi gratis tamu (${maxTokens.toLocaleString('id-ID')} token) telah habis. Silakan Masuk (Login) untuk mendapatkan kuota ${MAX_TOKENS_LOGGED_IN.toLocaleString('id-ID')} token, atau tunggu energi di-reset pada pukul ${timeStr} WIB (${durationStr}).`;
         
       return NextResponse.json(
         { 
@@ -76,9 +77,9 @@ export async function POST(req: NextRequest) {
           let buffer = "";
           let metadataParsed = false;
           let metadata = {
-            detectedLanguage: "id",
-            detectedTopic: "General",
-            suggestedTitle: "Percakapan Baru"
+            detectedLanguage: AI_CONFIG.defaultLanguage,
+            detectedTopic: AI_CONFIG.defaultTopic,
+            suggestedTitle: AI_CONFIG.defaultTitle
           };
 
           for await (const chunk of stream) {
@@ -100,9 +101,9 @@ export async function POST(req: NextRequest) {
                   try {
                     const parsed = JSON.parse(match[1]);
                     metadata = {
-                      detectedLanguage: parsed.language || "id",
-                      detectedTopic: parsed.topic || "General",
-                      suggestedTitle: parsed.title || "Percakapan Baru"
+                      detectedLanguage: parsed.language || AI_CONFIG.defaultLanguage,
+                      detectedTopic: parsed.topic || AI_CONFIG.defaultTopic,
+                      suggestedTitle: parsed.title || AI_CONFIG.defaultTitle
                     };
                   } catch (e) {
                     console.error("Failed to parse metadata JSON from stream:", e);
@@ -114,8 +115,8 @@ export async function POST(req: NextRequest) {
                   const data = JSON.stringify({ type: "chunk", text: remainder });
                   controller.enqueue(encoder.encode(`data: ${data}\n\n`));
                 }
-              } else if (buffer.length > 250) {
-                // If model didn't output metadata tag within 250 chars, flush buffer as normal text
+              } else if (buffer.length > STREAM_CONFIG.metadataBufferLimit) {
+                // If model didn't output metadata tag within buffer limit, flush buffer as normal text
                 metadataParsed = true;
                 fullText += buffer;
                 const data = JSON.stringify({ type: "chunk", text: buffer });
@@ -130,7 +131,7 @@ export async function POST(req: NextRequest) {
 
           // Fallback token calculation if stream didn't include usage
           if (!totalUsage) {
-            totalUsage = Math.ceil((fullText.length + JSON.stringify(messages).length) / 4);
+            totalUsage = Math.ceil((fullText.length + JSON.stringify(messages).length) / STREAM_CONFIG.charsPerToken);
           }
 
           // 4. Update Quota
